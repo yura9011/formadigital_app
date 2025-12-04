@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id            String      @id @default(uuid())
+  content       String
+  publishDate   DateTime
+  state         PostState   @default(QUEUE)
+  integrationId String
+  integration   Integration @relation(fields: [integrationId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  errorLog      String?
+  media         Json?       // Stores array of { path: string, type: 'image' | 'video' }
+}
+
+model Integration {
+  id                 String   @id @default(uuid())
+  name               String   // e.g. "Forma Digital Instagram"
+  provider           String   // e.g. "instagram", "facebook"
+  token              String
+  accountId          String?  // External ID (e.g. IG Business ID)
+  pictureUrl         String?
+  refreshToken       String?
+  tokenExpiration    DateTime?
+  posts              Post[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PostState {
+  QUEUE
+  PUBLISHED
+  ERROR
+  DRAFT
+}
