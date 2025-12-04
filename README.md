@@ -40,48 +40,6 @@ cd apps/frontend
 npm run dev -- -p 3001
 ```
 
-# Forma Digital App
-
-A social media scheduling application built with **NestJS** (Backend) and **Next.js** (Frontend), designed for *Forma Digital*.
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v18+)
-- Docker Desktop (for PostgreSQL & Redis)
-
-### Installation
-
-1.  **Clone the repository**
-2.  **Install dependencies** (Root)
-    ```bash
-    npm install
-    ```
-3.  **Start Infrastructure**
-    ```bash
-    docker compose up -d
-    ```
-4.  **Setup Database**
-    ```bash
-    cd apps/backend
-    npx prisma db push
-    npx prisma db seed
-    ```
-
-### Running the App
-
-**Backend (Port 3000)**
-```bash
-cd apps/backend
-npm run start:dev
-```
-
-**Frontend (Port 3001)**
-```bash
-cd apps/frontend
-npm run dev -- -p 3001
-```
-
 ## 🏗 Architecture
 
 -   **Monorepo**: Managed with npm workspaces.
