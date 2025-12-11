@@ -6,6 +6,40 @@ import { NeoButton } from '../../components/neo/NeoButton';
 export default function ChangelogPage() {
     const changes = [
         {
+            version: '0.7.0',
+            date: '2025-12-10',
+            title: 'GMB Audit v0.3.1 & Reportes',
+            items: [
+                '🚀 Auditoría Avanzada: Análisis SWOT, Brecha Competitiva (Gap Analysis) y Plan de Acción Estratégico.',
+                '🧠 Contexto Inteligente: Nuevos filtros para "Contexto de Zona" y "Productos Objetivo" para afinar la IA.',
+                '📄 Reportes PDF: Generación de informes profesionales PDF directamente desde el navegador.',
+                '🗺️ Mapa Mejorado: Visualización de "Ubicaciones Sintéticas" para competidores sin coordenadas exactas.',
+            ]
+        },
+        {
+            version: '0.6.0',
+            date: '2025-12-09',
+            title: 'Normalización de Tema Neo-Brutalista',
+            items: [
+                '🎨 Tema Unificado: Aplicado estilo Neo-Brutalista (Bauhaus) a secciones de Proyectos y GMB.',
+                '🛡️ Componentes UI: Estandarización de tarjetas, botones y tablas con bordes gruesos y sombras duras.',
+                '🚀 Navegación: Botones "Volver" consistentes que regresan al menú principal.',
+                '📱 UI Mapas: Controles de búsqueda en GMB rediseñados con estilo Neo.',
+            ]
+        },
+        {
+            version: '0.5.0',
+            date: '2025-12-08',
+            title: 'GMB Intelligence & CRM',
+            items: [
+                '📍 Google My Business: Busqueda de competidores y auditoría con IA.',
+                '🗄️ CRM de Clientes: Base de datos persistente para guardar clientes detectados.',
+                '⚡ Smart Caching: Sistema de caché (7 días) para reducir costos de API drásticamente.',
+                '🧠 IA Potenciada: Actualización a modelo Gemini 2.5 Flash para mayor precisión.',
+                '📊 Reportes PDF: Generación de reportes de auditoría profesionales.',
+            ]
+        },
+        {
             version: '0.4.0',
             date: '2025-12-03',
             title: 'Multi-Plataforma y Facebook Real',

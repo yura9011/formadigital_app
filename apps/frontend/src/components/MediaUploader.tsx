@@ -39,6 +39,7 @@ export function MediaUploader({ onUpload, initialUrls = [] }: MediaUploaderProps
     const uploadFiles = async (files: File[]) => {
         setUploading(true);
         const newUrls: string[] = [];
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
         // Create local previews immediately
         const localPreviews = files.map(file => URL.createObjectURL(file));
@@ -49,7 +50,7 @@ export function MediaUploader({ onUpload, initialUrls = [] }: MediaUploaderProps
                 const formData = new FormData();
                 formData.append('file', file);
 
-                const response = await fetch('http://localhost:3000/media/upload', {
+                const response = await fetch(`${API_URL}/media/upload`, {
                     method: 'POST',
                     body: formData,
                 });

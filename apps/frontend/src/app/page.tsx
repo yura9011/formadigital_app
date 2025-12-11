@@ -6,6 +6,13 @@ import { NeoButton } from '../components/neo/NeoButton';
 export default function Home() {
   const menuItems = [
     {
+      title: 'Proyectos',
+      description: 'Gestiona clientes y estados de proyectos (Planificación, En Progreso, Completado).',
+      icon: '🚀',
+      href: '/projects',
+      color: 'bg-neo-blue text-white'
+    },
+    {
       title: 'Analíticas',
       description: 'Visualiza tus estadísticas de Instagram, alcance y crecimiento.',
       icon: '📈',
@@ -18,6 +25,13 @@ export default function Home() {
       icon: '📅',
       href: '/calendar',
       color: 'bg-neo-blue/10'
+    },
+    {
+      title: 'Competidores',
+      description: 'Analiza tu competencia local y optimiza tu SEO en Google.',
+      icon: '🗺️',
+      href: '/gmb',
+      color: 'bg-green-100'
     },
     {
       title: 'Historial',
@@ -64,7 +78,7 @@ export default function Home() {
       </div>
 
       <footer className="mt-24 text-center font-bold text-gray-400 uppercase text-sm">
-        v0.3.0 • Built with Next.js & NestJS
+        v0.4.0 • Built with Next.js & NestJS
       </footer>
     </div>
   );

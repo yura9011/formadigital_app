@@ -11,10 +11,14 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { MediaModule } from './media/media.module';
 import { LoggerModule } from './common/logger/logger.module';
+import { GmbModule } from './gmb/gmb.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
@@ -31,6 +35,7 @@ import { LoggerModule } from './common/logger/logger.module';
     AuthModule,
     MediaModule,
     LoggerModule,
+    GmbModule,
   ],
   controllers: [AppController],
   providers: [AppService],

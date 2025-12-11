@@ -85,7 +85,7 @@ export default function SettingsPage() {
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-4xl font-black uppercase tracking-tighter">Configuración</h1>
-                <NeoButton onClick={() => window.history.back()}>Volver</NeoButton>
+                <NeoButton onClick={() => window.location.href = '/'}>Volver</NeoButton>
             </div>
 
             <div className="grid gap-8">

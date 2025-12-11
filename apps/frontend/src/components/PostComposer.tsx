@@ -14,6 +14,8 @@ interface Integration {
 }
 
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
 export default function PostComposer({ onPostCreated, initialDate }: { onPostCreated: () => void, initialDate?: string | null }) {
     const [content, setContent] = useState('🚀 Prueba de Sistema\n\nVerificando publicación simultánea en Facebook e Instagram.\n\n#FormaDigital #DevMode');
     const [date, setDate] = useState('');
@@ -37,7 +39,7 @@ export default function PostComposer({ onPostCreated, initialDate }: { onPostCre
     const [previewTab, setPreviewTab] = useState<'instagram' | 'facebook'>('instagram');
 
     useEffect(() => {
-        fetch('http://localhost:3000/integrations')
+        fetch(`${API_URL}/integrations`)
             .then((res) => res.json())
             .then((data) => {
                 setIntegrations(data);
@@ -59,7 +61,7 @@ export default function PostComposer({ onPostCreated, initialDate }: { onPostCre
         setIsLoading(true);
 
         try {
-            const res = await fetch('http://localhost:3000/posts', {
+            const res = await fetch(`${API_URL}/posts`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

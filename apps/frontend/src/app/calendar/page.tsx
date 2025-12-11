@@ -7,6 +7,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import PostComposer from '../../components/PostComposer';
 import { NeoButton } from '../../components/neo/NeoButton';
 import { NeoCard } from '../../components/neo/NeoCard';
+import { toast, Toaster } from 'react-hot-toast';
 
 export default function CalendarPage() {
     const [posts, setPosts] = useState([]);
@@ -57,7 +58,33 @@ export default function CalendarPage() {
                 }
             }
 
-            // 4. Map Local Posts
+            // 5. Fetch Google Calendar Events
+            try {
+                const googleRes = await fetch('http://localhost:3000/google/events');
+                if (googleRes.ok) {
+                    const googleEventsData = await googleRes.json();
+                    const googleEvents = googleEventsData.map((ev: any) => ({
+                        title: `📅 ${ev.summary}`,
+                        start: ev.start.dateTime || ev.start.date,
+                        end: ev.end.dateTime || ev.end.date,
+                        backgroundColor: '#4285F4', // Google Blue
+                        borderColor: '#000000',
+                        textColor: '#white',
+                        extendedProps: {
+                            id: ev.id,
+                            content: ev.description || ev.summary,
+                            publishDate: ev.start.dateTime || ev.start.date,
+                            state: 'GOOGLE_EVENT',
+                            integration: { name: 'Google Calendar' }
+                        }
+                    }));
+                    externalEvents = [...externalEvents, ...googleEvents];
+                }
+            } catch (e) {
+                console.warn("Google Calendar not connected or failed");
+            }
+
+            // 6. Map Local Posts
             const localEvents = localPosts.map((post: any) => ({
                 title: post.content.substring(0, 20) + '...',
                 start: post.publishDate,
@@ -67,7 +94,7 @@ export default function CalendarPage() {
                 extendedProps: { ...post }
             }));
 
-            // 5. Merge
+            // 7. Merge
             setPosts([...localEvents, ...externalEvents]);
 
         } catch (err) {
@@ -76,6 +103,16 @@ export default function CalendarPage() {
     };
 
     useEffect(() => {
+        // Check for success param
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            toast.success('Google Calendar Connected!');
+            // Clean URL
+            window.history.replaceState({}, '', '/calendar');
+        } else if (urlParams.get('error')) {
+            toast.error('Failed to connect Google Calendar');
+        }
+
         fetchPosts();
     }, []);
 
@@ -116,8 +153,17 @@ export default function CalendarPage() {
                     <NeoButton onClick={() => { setSelectedDate(null); setIsComposerOpen(true); setSelectedPost(null); }}>
                         + New Post
                     </NeoButton>
+                    <NeoButton
+                        onClick={() => window.location.href = 'http://localhost:3000/google/auth'}
+                        variant="secondary"
+                        size="sm"
+                        className="bg-blue-100"
+                    >
+                        Connect Google
+                    </NeoButton>
                 </div>
             </header>
+            <Toaster position="bottom-right" />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Calendar Column - Hidden if Composer is Open */}
