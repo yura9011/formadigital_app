@@ -6,6 +6,19 @@ import { NeoButton } from '../../components/neo/NeoButton';
 export default function ChangelogPage() {
     const changes = [
         {
+            version: '0.8.0',
+            date: '2025-12-11',
+            title: 'GBP/GSC Agency Platform',
+            items: [
+                '🏢 Plataforma de Agencia: Sistema multi-cliente para gestionar GBP y GSC de múltiples clientes.',
+                '🔐 OAuth de Google: Flujo OAuth 2.0 seguro para conectar cuentas de clientes con modo mock.',
+                '⭐ Gestión de Reseñas: Dashboard completo con filtros, estadísticas y sugerencias de respuesta con IA.',
+                '📊 Analytics de GSC: Panel de rendimiento con clicks, impresiones, CTR, posición e índice de cobertura.',
+                '📋 Panel de Agencia: Vista general multi-cliente con alertas de reseñas y gestión de clientes.',
+                '🧪 Sistema Mock: Datos de prueba completos para desarrollo (3 ubicaciones, 7 reseñas, 3 propiedades GSC).',
+            ]
+        },
+        {
             version: '0.7.0',
             date: '2025-12-10',
             title: 'GMB Audit v0.3.1 & Reportes',

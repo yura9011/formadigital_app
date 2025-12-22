@@ -1,0 +1,10 @@
+2025-12-22 16:48:54,490 - INFO - ✅ LLM Provider available: gemini
+2025-12-22 16:48:54,490 - INFO - ✅ LLM Provider available: openrouter
+2025-12-22 16:48:54,491 - INFO - ✅ LLM Provider available: huggingface
+2025-12-22 16:48:56,513 - INFO - ✅ LLM Provider available: ollama
+2025-12-22 16:48:56,513 - INFO - ==================================================
+2025-12-22 16:48:56,514 - INFO - 🚀 Starting Analysis: 'D'oro Italian Bar' in 'Buenos Aires'
+2025-12-22 16:48:56,514 - INFO - ==================================================
+2025-12-22 16:48:56,515 - INFO - 🔍 Searching: 'D'oro Italian Bar en Buenos Aires' (limit: 1)
+2025-12-22 16:48:58,958 - INFO - ✅ Found 0 results
+2025-12-22 16:48:59,016 - INFO - 📁 Output saved: results_meta.json

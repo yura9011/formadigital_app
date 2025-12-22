@@ -1,0 +1,19 @@
+2025-12-22 13:03:14,503 - 🏢 AGENCIA LOCAL INICIADA
+2025-12-22 13:03:14,504 - ========================
+2025-12-22 13:03:14,504 - 🕵️  SCOUT: Iniciando búsqueda de 'barberia'...
+2025-12-22 13:04:34,863 - ✅ SCOUT: Encontró 15 candidatos. Iniciando enriquecimiento...
+2025-12-22 13:05:04,892 - 📊 ANALYST: Iniciando auditoría indirecta (Google)...
+2025-12-22 13:05:04,892 - 🕵️ (AUDIT) Buscando pistas en Google: 'site:instagram.com "58 Barberia Studio" Palermo, Buenos Aires'
+2025-12-22 13:06:48,358 -    � Veredicto Auditoría: Active (Found post from 2 days ago...)
+2025-12-22 13:06:51,210 - 🕵️ (AUDIT) Buscando pistas en Google: 'site:instagram.com "Cheek To Cheek Peluquería -Spa" Palermo, Buenos Aires'
+2025-12-22 13:07:01,379 - ❌ Error en Auditoría Google: Page.wait_for_selector: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("#search") to be visible
+
+2025-12-22 13:07:04,331 - 🕵️ (AUDIT) Buscando pistas en Google: 'site:instagram.com "Barberia Only Barbers" Palermo, Buenos Aires'
+2025-12-22 13:07:14,865 - Future exception was never retrieved
+future: <Future finished exception=TargetClosedError('Target page, context or browser has been closed\nCall log:\n  - waiting for locator("#search") to be visible\n')>
+playwright._impl._errors.TargetClosedError: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("#search") to be visible
+

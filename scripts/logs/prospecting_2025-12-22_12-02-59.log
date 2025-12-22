@@ -1,0 +1,16 @@
+2025-12-22 12:02:59,323 - INFO - ✅ Módulo de IA (llm_extractor) importado correctamente.
+2025-12-22 12:02:59,424 - INFO - ==================================================
+2025-12-22 12:02:59,425 - INFO - 🚀 INICIANDO DEEP DISCOVERY CON ENRIQUECIMIENTO WEB
+2025-12-22 12:02:59,425 - INFO - ==================================================
+2025-12-22 12:03:01,435 - INFO - 🔎 Iniciando: 'restaurant' en 'Palermo, Buenos Aires'
+2025-12-22 12:03:06,159 - INFO - 📋 Encontrados 21. Procesando 5...
+2025-12-22 12:03:06,202 - INFO - 👉 Click en resultado 1/5
+2025-12-22 12:04:31,696 - INFO -    🤖 LLM Data extraída con éxito
+2025-12-22 12:04:31,697 - INFO - 📍 Lead: DHAM
+2025-12-22 12:04:32,224 - INFO - 🌐 Enriqueciendo: Visitando http://www.somosdham.com/...
+2025-12-22 12:04:33,434 - INFO - 👉 Click en resultado 2/5
+2025-12-22 12:06:05,710 - INFO -    🤖 LLM Data extraída con éxito
+2025-12-22 12:06:05,710 - INFO - 📍 Lead: TESEO - Restaurante Bar
+2025-12-22 12:06:05,711 - INFO - 🌐 Enriqueciendo: Visitando https://www.teseo.com.ar/...
+2025-12-22 12:06:07,164 - INFO -    📸 IG: https://www.instagram.com/teseobar/
+2025-12-22 12:06:07,236 - INFO - 👉 Click en resultado 3/5

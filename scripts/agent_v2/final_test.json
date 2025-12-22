@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "clients": [
+    {
+      "name": "Vive Café",
+      "address": "C1414BTH, Costa Rica 5722, C1414BTH Cdad. Autónoma de Buenos Aires, Argentina",
+      "phone": "+54 11 4774-5461",
+      "website": "https://www.facebook.com/ViveCafeTienda/?fref=ts",
+      "rating": 4.7,
+      "reviewCount": 2642,
+      "placeId": "ChIJTUHwQJK1vJURdEmmL52Y2p0",
+      "category": "Cafetería",
+      "latitude": -34.581756,
+      "longitude": -58.4360058,
+      "googleMapsUri": null,
+      "source": "SerpApi",
+      "email": "vivecafe@outlook.com",
+      "instagram": "https://l.facebook.com/l.php?u=https%3A%2F%2Fwww.instagram.com%2Fvivecafe%2F&h=AT2g1ln92RvgDAnmarrHU2oTr57pIw3cuO1yoirQqCZRDUQD623FE6PneJmcbZ3uobbMLV3A2TpPyPygo7U5kfkiRr-6i9ktSCdCWJAYPsXmNlIuvAKL0cHaL7TybdofKtuEq8qjCrfNlv7pRLriPE3EXT5jTFj00fHx8A",
+      "facebook": "https://www.facebook.com/login/device-based/regular/login/?login_attempt=1&next=https%3A%2F%2Fwww.facebook.com%2FViveCafeTienda%2F%3Ffref%3Dts",
+      "linkedin": null,
+      "summary": "Vive Café is a specialty coffee shop in Buenos Aires offering breakfast options and natural juices with a focus on Colombian specialty coffee.",
+      "gaps": [
+        "No social media links",
+        "Outdated website design"
+      ],
+      "tier": "WARM",
+      "score": 60,
+      "enrichedAt": "2025-12-22T17:15:57.039977",
+      "type": "LEAD"
+    }
+  ],
+  "stats": {
+    "total": 1,
+    "tiers": {
+      "HOT": 0,
+      "WARM": 1,
+      "COLD": 0
+    },
+    "synced": true
+  }
+}

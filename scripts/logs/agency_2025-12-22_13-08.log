@@ -1,0 +1,12 @@
+2025-12-22 13:08:42,053 - 🏢 AGENCIA LOCAL INICIADA
+2025-12-22 13:08:42,061 - ========================
+2025-12-22 13:08:42,062 - 🕵️  SCOUT: Iniciando búsqueda de 'barberia'...
+2025-12-22 13:10:02,589 - ✅ SCOUT: Encontró 15 candidatos. Iniciando enriquecimiento...
+2025-12-22 13:10:35,864 - 📊 ANALYST: Iniciando auditoría indirecta (Google)...
+2025-12-22 13:10:35,865 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): 'site:instagram.com "58 Barberia Studio" Palermo, Buenos Aires'
+2025-12-22 13:11:37,806 -    📊 Veredicto Auditoría: Dormant (No found any recent post with the date information.)
+2025-12-22 13:11:40,151 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): 'site:instagram.com "Barberia Only Barbers - Recoleta" Palermo, Buenos Aires'
+2025-12-22 13:11:53,101 - ⚠️ Timeout buscando en DDG. Posible bloqueo o sin resultados.
+2025-12-22 13:11:55,876 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): 'site:instagram.com "Barberia Only Barbers" Palermo, Buenos Aires'
+2025-12-22 13:13:02,549 -    📊 Veredicto Auditoría: Dormant (No se han encontrado resultados para site:instagram.com 'Barberia Only Barbers' Palermo, Buenos Aires')
+2025-12-22 13:13:05,244 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): 'site:instagram.com "BARBERIA RICCI PASTRO" Palermo, Buenos Aires'

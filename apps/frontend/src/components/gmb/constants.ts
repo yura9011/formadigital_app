@@ -8,9 +8,11 @@ export const TRANSLATIONS = {
             map: "Map & Search",
             analysis: "Analysis & Ranking",
             audit: "Client Audit",
-            audit: "Client Audit",
             report: "PDF Report",
-            leads: "Leads Database"
+            leads: "Leads Database",
+            reviews: "Reviews",
+            gsc: "Search Console",
+            agency: "Agency"
         },
         leadsTab: {
             refreshBtn: "Refresh Data",
@@ -98,9 +100,11 @@ export const TRANSLATIONS = {
             map: "Mapa y Búsqueda",
             analysis: "Análisis y Clasificación",
             audit: "Auditoría Cliente",
-            audit: "Auditoría Cliente",
             report: "Reporte PDF",
-            leads: "Base de Datos (Leads)"
+            leads: "Base de Datos (Leads)",
+            reviews: "Reseñas",
+            gsc: "Search Console",
+            agency: "Agencia"
         },
         leadsTab: {
             refreshBtn: "Actualizar Datos",
@@ -140,7 +144,11 @@ export const TRANSLATIONS = {
                 reviews: "Reseñas",
                 score: "Puntaje",
                 viewMaps: "Ver en Google Maps"
-            }
+            },
+            noResults: "No se encontraron competidores en el radio seleccionado.",
+            errorSearch: "Error al buscar competidores. Verifique la conexión.",
+            found: "Encontrados",
+            competitors: "competidores"
         },
         analysisTab: {
             exportBtn: "Exportar a CSV",

@@ -1,0 +1,39 @@
+{
+  "success": true,
+  "clients": [
+    {
+      "name": "La Nueva Buenos Aires",
+      "address": "Fitz Roy 2493, C1425FVG Cdad. Autónoma de Buenos Aires, Argentina",
+      "phone": "+54 11 4773-4141",
+      "website": null,
+      "rating": 4.3,
+      "reviewCount": 1045,
+      "placeId": "ChIJveohnpC1vJURWHJ29Op4WpM",
+      "category": "Panadería",
+      "latitude": -34.5778017,
+      "longitude": -58.428820699999996,
+      "googleMapsUri": null,
+      "source": "SerpApi",
+      "summary": "La Nueva Buenos Aires appears to be a business with a name suggesting an Argentine origin or theme. As there is no website available, its specific services or products are currently unknown.",
+      "gaps": [
+        "No website available",
+        "No online presence",
+        "No social media",
+        "Lack of business information readily accessible"
+      ],
+      "tier": "HOT",
+      "score": 95,
+      "enrichedAt": "2025-12-22T17:21:35.174322",
+      "type": "LEAD"
+    }
+  ],
+  "stats": {
+    "total": 1,
+    "tiers": {
+      "HOT": 1,
+      "WARM": 0,
+      "COLD": 0
+    },
+    "synced": true
+  }
+}

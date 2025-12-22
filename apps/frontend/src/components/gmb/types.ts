@@ -67,7 +67,9 @@ export interface Project {
     createdAt: string;
     updatedAt: string;
     clientId: string;
-    client?: { name: string }; // For master dashboard
+    client?: { name: string; category?: string }; // For master dashboard
+    assignedToId?: string;
+    assignedTo?: { id: string; name?: string; email: string };
 }
 
 export interface ProjectTemplate {

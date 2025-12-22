@@ -1,0 +1,154 @@
+
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>Prospecting Report - 22/12/2025 11:24</title>
+        <style>
+            :root { --primary: #2563eb; --hot: #ef4444; --warm: #f59e0b; --cold: #3b82f6; --bg: #f1f5f9; }
+            body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+            .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+            .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+            .stat-num { font-size: 1.8em; font-weight: bold; }
+            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+            
+            .prospect-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 4px solid transparent; }
+            .prospect-card.HOT { border-top-color: var(--hot); }
+            .prospect-card.WARM { border-top-color: var(--warm); }
+            .prospect-card.COLD { border-top-color: var(--cold); }
+            
+            .p-header { padding: 15px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; }
+            .p-name { margin: 0; font-size: 1.1em; }
+            .p-body { padding: 15px; font-size: 0.9em; }
+            .contact-info { background: #f8fafc; padding: 8px; border-radius: 4px; margin: 10px 0; font-family: monospace; font-size: 0.9em; }
+            .gaps { color: #be123c; margin-top: 10px; font-size: 0.85em; }
+            .actions { padding: 12px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; gap: 8px; }
+            .btn { flex: 1; padding: 6px; text-align: center; text-decoration: none; border-radius: 4px; font-size: 0.85em; background: #e2e8f0; color: #333; }
+            .btn-blue { background: #eff6ff; color: var(--primary); }
+        </style>
+    </head>
+    <body>
+        <h1>🎯 Reporte de Prospectos</h1>
+        <div class="stats">
+            <div class="card"><div class="stat-num">5</div><div>Total</div></div>
+            <div class="card"><div class="stat-num" style="color:var(--hot)">5</div><div>HOT 🔥</div></div>
+            <div class="card"><div class="stat-num" style="color:var(--warm)">0</div><div>WARM 🟡</div></div>
+            <div class="card"><div class="stat-num" style="color:var(--cold)">0</div><div>COLD 🔵</div></div>
+        </div>
+        <div class="grid">
+    
+        <div class="prospect-card HOT">
+            <div class="p-header">
+                <h3 class="p-name">Resultados</h3>
+                <b>HOT</b>
+            </div>
+            <div class="p-body">
+                <div>📍 Jorge Luis Borges 1757, C1414 Ciudad Autónoma de Buenos Aires</div>
+                <div>⭐ 0.0 (0 reviews)</div>
+                <div class="contact-info">
+                    <span style="color:#ccc">Sin Email</span><br>
+                    011 4870-1001<br>
+                     
+                </div>
+                <div class="gaps">
+                    <b>Oportunidades:</b><br>• Sin Sitio Web<br>• Reviews Críticos (<10)
+                </div>
+            </div>
+            <div class="actions">
+                <a href="None" target="_blank" class="btn btn-blue">🌐 Web</a>
+                <a href="https://www.google.com/maps/search/?api=1&query=Resultados Jorge Luis Borges 1757, C1414 Ciudad Autónoma de Buenos Aires" target="_blank" class="btn">📍 Mapa</a>
+            </div>
+        </div>
+        
+        <div class="prospect-card HOT">
+            <div class="p-header">
+                <h3 class="p-name">Resultados</h3>
+                <b>HOT</b>
+            </div>
+            <div class="p-body">
+                <div>📍 Av. Sta. Fe 3902, C1425 Cdad. Autónoma de Buenos Aires</div>
+                <div>⭐ 4.8 (0 reviews)</div>
+                <div class="contact-info">
+                    <span style="color:#ccc">Sin Email</span><br>
+                    011 3668-6965<br>
+                     
+                </div>
+                <div class="gaps">
+                    <b>Oportunidades:</b><br>• Sin Redes Sociales Visibles en Web<br>• Email no público<br>• Reviews Críticos (<10)
+                </div>
+            </div>
+            <div class="actions">
+                <a href="http://www.somosdham.com/" target="_blank" class="btn btn-blue">🌐 Web</a>
+                <a href="https://www.google.com/maps/search/?api=1&query=Resultados Av. Sta. Fe 3902, C1425 Cdad. Autónoma de Buenos Aires" target="_blank" class="btn">📍 Mapa</a>
+            </div>
+        </div>
+        
+        <div class="prospect-card HOT">
+            <div class="p-header">
+                <h3 class="p-name">Resultados</h3>
+                <b>HOT</b>
+            </div>
+            <div class="p-body">
+                <div>📍 Costa Rica 5602, C1414 Cdad. Autónoma de Buenos Aires</div>
+                <div>⭐ 4.7 (0 reviews)</div>
+                <div class="contact-info">
+                    <span style="color:#ccc">Sin Email</span><br>
+                    011 2875-6355<br>
+                     
+                </div>
+                <div class="gaps">
+                    <b>Oportunidades:</b><br>• Sin Redes Sociales Visibles en Web<br>• Email no público<br>• Reviews Críticos (<10)
+                </div>
+            </div>
+            <div class="actions">
+                <a href="https://hierrocasadefuegos.com/" target="_blank" class="btn btn-blue">🌐 Web</a>
+                <a href="https://www.google.com/maps/search/?api=1&query=Resultados Costa Rica 5602, C1414 Cdad. Autónoma de Buenos Aires" target="_blank" class="btn">📍 Mapa</a>
+            </div>
+        </div>
+        
+        <div class="prospect-card HOT">
+            <div class="p-header">
+                <h3 class="p-name">Resultados</h3>
+                <b>HOT</b>
+            </div>
+            <div class="p-body">
+                <div>📍 Costa Rica 5602, C1414 Cdad. Autónoma de Buenos Aires</div>
+                <div>⭐ 4.7 (0 reviews)</div>
+                <div class="contact-info">
+                    <span style="color:#ccc">Sin Email</span><br>
+                    011 2875-6355<br>
+                     
+                </div>
+                <div class="gaps">
+                    <b>Oportunidades:</b><br>• Sin Redes Sociales Visibles en Web<br>• Email no público<br>• Reviews Críticos (<10)
+                </div>
+            </div>
+            <div class="actions">
+                <a href="https://hierrocasadefuegos.com/" target="_blank" class="btn btn-blue">🌐 Web</a>
+                <a href="https://www.google.com/maps/search/?api=1&query=Resultados Costa Rica 5602, C1414 Cdad. Autónoma de Buenos Aires" target="_blank" class="btn">📍 Mapa</a>
+            </div>
+        </div>
+        
+        <div class="prospect-card HOT">
+            <div class="p-header">
+                <h3 class="p-name">Resultados</h3>
+                <b>HOT</b>
+            </div>
+            <div class="p-body">
+                <div>📍 Costa Rica 5602, C1414 Cdad. Autónoma de Buenos Aires</div>
+                <div>⭐ 4.7 (0 reviews)</div>
+                <div class="contact-info">
+                    <span style="color:#ccc">Sin Email</span><br>
+                    011 2875-6355<br>
+                     
+                </div>
+                <div class="gaps">
+                    <b>Oportunidades:</b><br>• Sin Redes Sociales Visibles en Web<br>• Email no público<br>• Reviews Críticos (<10)
+                </div>
+            </div>
+            <div class="actions">
+                <a href="https://hierrocasadefuegos.com/" target="_blank" class="btn btn-blue">🌐 Web</a>
+                <a href="https://www.google.com/maps/search/?api=1&query=Resultados Costa Rica 5602, C1414 Cdad. Autónoma de Buenos Aires" target="_blank" class="btn">📍 Mapa</a>
+            </div>
+        </div>
+        </div></body></html>

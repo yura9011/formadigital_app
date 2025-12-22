@@ -12,6 +12,11 @@ import { join } from 'path';
 import { MediaModule } from './media/media.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { GmbModule } from './gmb/gmb.module';
+import { GoogleAuthModule } from './google-auth/google-auth.module';
+import { GbpReviewsModule } from './gbp/gbp-reviews.module';
+import { GscModule } from './gsc/gsc.module';
+import { AgencyModule } from './agency/agency.module';
+import { CalendarModule } from './calendar/calendar.module';
 
 @Module({
   imports: [
@@ -36,6 +41,11 @@ import { GmbModule } from './gmb/gmb.module';
     MediaModule,
     LoggerModule,
     GmbModule,
+    GoogleAuthModule,
+    GbpReviewsModule,
+    GscModule,
+    AgencyModule,
+    CalendarModule,
   ],
   controllers: [AppController],
   providers: [AppService],

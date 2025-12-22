@@ -5,6 +5,10 @@ import { NeoCard } from '../../components/neo/NeoCard';
 import { NeoButton } from '../../components/neo/NeoButton';
 import { NeoInput } from '../../components/neo/NeoInput';
 import { NeoSelect } from '../../components/neo/NeoSelect';
+import GoogleConnectButton from '../../components/google/GoogleConnectButton';
+import * as gmbService from '../../services/gmb.service';
+import toast from 'react-hot-toast';
+import { withAuth } from '../../components/auth/withAuth';
 
 interface Integration {
     id: string;
@@ -13,8 +17,16 @@ interface Integration {
     picture?: string;
 }
 
-export default function SettingsPage() {
+interface User {
+    id: string;
+    email: string;
+    name?: string;
+}
+
+function SettingsPage() {
     const [integrations, setIntegrations] = useState<Integration[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -25,19 +37,38 @@ export default function SettingsPage() {
     const [accountId, setAccountId] = useState('');
 
     useEffect(() => {
-        fetchIntegrations();
+        fetchData();
+        // Load saved user from localStorage
+        const saved = localStorage.getItem('currentUserId');
+        if (saved) setCurrentUserId(saved);
     }, []);
 
-    const fetchIntegrations = async () => {
+    const fetchData = async () => {
         try {
-            const res = await fetch('http://localhost:3001/integrations');
-            const data = await res.json();
-            setIntegrations(data);
+            const [integrationsData, usersData] = await Promise.all([
+                fetch('http://localhost:3001/integrations').then(r => r.json()).catch(() => []),
+                gmbService.getUsers()
+            ]);
+            setIntegrations(integrationsData);
+            // Filter to only show real app users (with email), exclude admin
+            const appUsers = usersData.filter((u: User) =>
+                u.email &&
+                u.email.includes('@') &&
+                !u.email.toLowerCase().includes('admin')
+            );
+            setUsers(appUsers);
         } catch (error) {
-            console.error('Failed to fetch integrations', error);
+            console.error('Failed to fetch data', error);
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleUserChange = (userId: string) => {
+        setCurrentUserId(userId);
+        localStorage.setItem('currentUserId', userId);
+        const user = users.find(u => u.id === userId);
+        toast.success(`Sesión iniciada como ${user?.name || user?.email}`);
     };
 
     const handleDisconnect = async (id: string) => {
@@ -81,6 +112,8 @@ export default function SettingsPage() {
         }
     };
 
+    const currentUser = users.find(u => u.id === currentUserId);
+
     return (
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-8">
@@ -89,8 +122,35 @@ export default function SettingsPage() {
             </div>
 
             <div className="grid gap-8">
-                {/* Connected Accounts */}
-                <NeoCard title="Cuentas Conectadas">
+                {/* Active User */}
+                <NeoCard title="👤 Sesión Activa">
+                    <div className="space-y-4">
+                        <div className="p-4 bg-green-100 border-2 border-green-500">
+                            <p className="font-bold text-green-800 text-lg">
+                                ✓ {localStorage.getItem('currentUserName') || 'Usuario'}
+                            </p>
+                            <p className="text-sm text-green-700 font-mono mt-1">
+                                {localStorage.getItem('currentUserEmail')}
+                            </p>
+                            <p className="text-xs text-green-600 mt-2">
+                                Tus recordatorios y proyectos están sincronizados con esta cuenta.
+                            </p>
+                        </div>
+                    </div>
+                </NeoCard>
+
+                {/* Google Integrations */}
+                <NeoCard title="Integraciones Google">
+                    <div className="flex flex-col items-start gap-4 p-2">
+                        <GoogleConnectButton />
+                        <p className="text-sm text-gray-500">
+                            Conecta tu cuenta principal para habilitar Calendar, GMB y Search Console.
+                        </p>
+                    </div>
+                </NeoCard>
+
+                {/* Connected Accounts (Meta) */}
+                <NeoCard title="Cuentas Conectadas (Meta)">
                     {isLoading ? (
                         <div className="p-4 text-center font-mono">Cargando...</div>
                     ) : integrations.length > 0 ? (
@@ -178,3 +238,5 @@ export default function SettingsPage() {
         </div>
     );
 }
+
+export default withAuth(SettingsPage);

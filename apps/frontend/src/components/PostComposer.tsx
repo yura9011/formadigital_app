@@ -20,7 +20,7 @@ export default function PostComposer({ onPostCreated, initialDate }: { onPostCre
     const [content, setContent] = useState('🚀 Prueba de Sistema\n\nVerificando publicación simultánea en Facebook e Instagram.\n\n#FormaDigital #DevMode');
     const [date, setDate] = useState('');
     // Use a reliable public image from Unsplash that Instagram can access
-    const [mediaUrls, setMediaUrls] = useState<string[]>(['https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=1080&auto=format&fit=crop']);
+    const [mediaUrls, setMediaUrls] = useState<string[]>([]);
 
     useEffect(() => {
         if (initialDate) {

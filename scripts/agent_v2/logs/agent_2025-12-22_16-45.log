@@ -1,0 +1,21 @@
+2025-12-22 16:45:45,847 - INFO - ✅ LLM Provider available: gemini
+2025-12-22 16:45:45,848 - INFO - ✅ LLM Provider available: openrouter
+2025-12-22 16:45:45,848 - INFO - ✅ LLM Provider available: huggingface
+2025-12-22 16:45:47,875 - INFO - ✅ LLM Provider available: ollama
+2025-12-22 16:45:47,876 - INFO - ==================================================
+2025-12-22 16:45:47,876 - INFO - 🚀 Starting Analysis: 'parrilla' in 'Palermo, Buenos Aires'
+2025-12-22 16:45:47,877 - INFO - ==================================================
+2025-12-22 16:45:47,877 - INFO - 🔍 Searching: 'parrilla en Palermo, Buenos Aires' (limit: 2)
+2025-12-22 16:45:50,340 - INFO - ✅ Found 2 results
+2025-12-22 16:45:50,354 - INFO - 🔎 Enriching via Google: 'PARRILLA EL VIEJO PALERMO Gorriti 5608, C1414 Cdad. Autónoma de Buenos Aires, Argentina'
+2025-12-22 16:45:50,355 - INFO - 🔎 Enriching via Google: 'Hierro Parrilla Palermo Costa Rica 5602, C1414 Cdad. Autónoma de Buenos Aires, Argentina'
+2025-12-22 16:45:51,140 - INFO - 🌐 Scraping: /url?q=https://hierrocasadefuegos.com/&opi=79508299&sa=U&ved=0ahUKEwj22Kzk-tGRAxUlhIkEHa1PN08Q61gIgQEoDw&usg=AOvVaw0mhMc8XJ9fdQC71Qf4gI1D
+2025-12-22 16:45:51,142 - WARNING - ⚠️ Failed to scrape /url?q=https://hierrocasadefuegos.com/&opi=79508299&sa=U&ved=0ahUKEwj22Kzk-tGRAxUlhIkEHa1PN08Q61gIgQEoDw&usg=AOvVaw0mhMc8XJ9fdQC71Qf4gI1D: No connection adapters were found for '/url?q=https://hierrocasadefuegos.com/&opi=79508299&sa=U&ved=0ahUKEwj22Kzk-tGRAxUlhIkEHa1PN08Q61gIgQEoDw&usg=AOvVaw0mhMc8XJ9fdQC71Qf4gI1D'
+2025-12-22 16:45:58,130 - INFO - 🤖 Trying gemini...
+2025-12-22 16:46:00,759 - INFO - ✅ Analysis complete via gemini
+2025-12-22 16:46:00,760 - INFO - 🔸 DRY RUN - Skipping sync
+2025-12-22 16:46:00,760 - INFO - ==================================================
+2025-12-22 16:46:00,760 - INFO - ✅ Complete: 2 leads enriched
+2025-12-22 16:46:00,760 - INFO -    🔥 HOT: 2 | 🟡 WARM: 0 | 🔵 COLD: 0
+2025-12-22 16:46:00,761 - INFO - ==================================================
+2025-12-22 16:46:00,764 - INFO - 📁 Output saved: results_hybrid.json

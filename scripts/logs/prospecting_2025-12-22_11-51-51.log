@@ -1,0 +1,9 @@
+2025-12-22 11:51:51,071 - INFO - ==================================================
+2025-12-22 11:51:51,072 - INFO - 🚀 INICIANDO DEEP DISCOVERY CON ENRIQUECIMIENTO WEB
+2025-12-22 11:51:51,072 - INFO - ==================================================
+2025-12-22 11:51:52,187 - INFO - 🔎 Iniciando: 'restaurant' en 'Palermo, Buenos Aires'
+2025-12-22 11:51:57,129 - INFO - 📋 Encontrados 21. Procesando 5...
+2025-12-22 11:51:57,174 - INFO - 👉 Click en resultado 1/5
+2025-12-22 11:52:22,003 - ERROR - ❌ Error llamando a Ollama LLM: HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=20)
+2025-12-22 11:52:22,005 - INFO - 📍 Lead: Ruta 6 - Casa de Tequeños
+2025-12-22 11:52:22,371 - INFO - 👉 Click en resultado 2/5

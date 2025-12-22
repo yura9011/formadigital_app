@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Vitácora",
+    "rating": 5.0,
+    "reviews": 0,
+    "type": "N/A",
+    "address": "Gorriti 5054 C1414BJR, C1414BJR Cdad. Autónoma de Buenos Aires",
+    "phone": null,
+    "website": null,
+    "price_tier": null,
+    "services": [],
+    "keyword": "restaurant",
+    "location": "Palermo, Buenos Aires",
+    "score": 95,
+    "tier": "HOT",
+    "gaps": [
+      "Sin Sitio Web",
+      "Reviews Críticos (<10)",
+      "Sin Teléfono (Pérdida de reservas)"
+    ]
+  },
+  {
+    "name": "DHAM",
+    "rating": 4.8,
+    "reviews": 0,
+    "type": "N/A",
+    "address": "Av. Sta. Fe 3902, C1425 Cdad. Autónoma de Buenos Aires",
+    "phone": "011 3668-6965",
+    "website": "http://www.somosdham.com/",
+    "price_tier": null,
+    "services": [],
+    "keyword": "restaurant",
+    "location": "Palermo, Buenos Aires",
+    "email": null,
+    "instagram": null,
+    "facebook": null,
+    "linkedin": null,
+    "enrichment_status": "visited",
+    "score": 75,
+    "tier": "HOT",
+    "gaps": [
+      "Sin Redes Sociales Visibles",
+      "Reviews Críticos (<10)"
+    ]
+  }
+]

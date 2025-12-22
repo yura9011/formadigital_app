@@ -39,6 +39,23 @@ async function main() {
         },
     });
     console.log({ user });
+
+    // Seed Lucho User
+    // Password: 123456
+    const luchoHash = '$2b$10$cW.6umaP49vlGkcJFe5VLewt0z7d/nu8GuHFAokjk43p6BSPcLDdu';
+
+    const luchoUser = await prisma.user.upsert({
+        where: { email: 'lucho@formadigital.com' },
+        update: {
+            password: luchoHash,
+        },
+        create: {
+            email: 'lucho@formadigital.com',
+            name: 'Lucho',
+            password: luchoHash,
+        },
+    });
+    console.log({ luchoUser });
 }
 
 main()

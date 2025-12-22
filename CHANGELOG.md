@@ -2,6 +2,114 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.2] - 2025-12-15
+### Added
+- **Geolocation Free (OSM)**: Migración completa a OpenStreetMap.
+  - **Nominatim**: Geocodificación de direcciones sin costos.
+  - **Overpass API**: Búsqueda de competidores sin Google Places API.
+  - **Backend Refactor**: Eliminación de dependencias de Gemini para geolocalización.
+- **Improved Error Handling**: Manejo de errores 500 en Google Auth (Token Refresh) para mostrar mensajes claros al usuario.
+
+### Fixed
+- **Critical Crash**: Solucionado error que causaba crash del servidor (stack trace D:/...) cuando un usuario externo intentaba agendar con token expirado.
+- **UX**: Mensajes de error amigables en CRM scheduling.
+
+## [0.9.1] - 2025-12-15
+### Added
+- **Integración Google Calendar**: Sistema completo de gestión de eventos.
+  - **Sincronización OAuth 2.0**: Conexión segura con cuentas de Google (personales o agencia).
+  - **Calendario Compartido**: Fallback automático a la cuenta de la agencia si el usuario no tiene cuenta conectada.
+  - **Gestión de Eventos**: Crear, Editar y Eliminar eventos directamente desde la app.
+  - **UI Neo-Brutalista**: Modal de eventos personalizado y vista de calendario (`@fullcalendar`).
+  - **Endpoints**: `GET/POST/PATCH/DELETE` en `/calendar/events`.
+
+### Roadmap Estratégico (Visualizado)
+- **Infraestructura**:
+  - **Colas y Rate Limiting**: Reforzar uso de BullMQ para escalar (match con Arquitectura Central).
+  - **Data Warehouse**: Futura integración con BigQuery para analíticas masivas.
+- **Nuevos Módulos (Blue Ocean)**:
+  - **Opportunity Detector**: Nuevo agente `@strategy-agent` para algoritmos de detección de nichos.
+  - **GMC Integration**: Sincronización de inventario en tiempo real (Google Merchant Center).
+
+## [0.9.0] - 2025-12-15
+### Added
+- **CRM Unificado**: Consolidación de "Negocios" y "Clientes" en `/crm` con vista única.
+  - Filtros por tipo: Semillas (Leads) vs Clientes Activos
+  - Búsqueda por nombre, dirección, categoría
+  - ABM completo (Alta, Baja, Modificación)
+  - Sistema de notas por cliente
+  - Conversión de Lead a Cliente Activo
+- **Sistema de Alertas y Recordatorios**: Nuevo sistema de tracking de contactos.
+  - Modelo `Reminder` con estados: PENDING → ACTIVE → COMPLETED/DISMISSED
+  - Dashboard con sidebar "📢 Alertas" (vencidos en rojo, próximos en amarillo)
+  - Creación de recordatorios con fecha y usuario asignado
+  - Auto-actualización de estado cuando llega la fecha
+- **Asignación de Proyectos**: Los proyectos ahora pueden asignarse a usuarios específicos.
+  - Dropdown de asignación en vista expandida del proyecto
+  - Relación `Project.assignedTo` → `User`
+- **Nuevos Usuarios**: Lucas y Nahuel agregados al sistema.
+
+### Changed
+- **Dashboard Home**: Rediseño con layout de 2 columnas (Alertas + Menú principal).
+- **Projects Page**: Nueva fila de acciones con asignación y creación de recordatorios.
+
+### Database
+- **Nueva migración**: `add_reminders_and_project_assignment`
+- **Nuevos modelos**: `Reminder`, `ReminderStatus` enum
+- **Campos nuevos**: `Project.assignedToId`, `Client.reminders`
+
+### API Endpoints
+- `GET /gmb/reminders` - Listar recordatorios (con auto-update de estado)
+- `POST /gmb/reminders` - Crear recordatorio
+- `PATCH /gmb/reminders/:id` - Actualizar estado
+- `DELETE /gmb/reminders/:id` - Eliminar recordatorio
+- `PATCH /gmb/projects/:id/assign` - Asignar proyecto a usuario
+- `GET /gmb/users` - Listar usuarios del sistema
+- `DELETE /gmb/clients/:id` - Eliminar cliente
+
+### Fixed
+- **Delete Client**: Agregado endpoint faltante para eliminar clientes.
+- **PATCH Route**: Corregido `/client/` → `/clients/` (plural) para consistencia.
+
+## [0.8.1] - 2025-12-12
+### Performance
+- **Blocking Script Removal**: Moved `html2pdf.js` from global layout to on-demand loading in ReportTab (-500ms initial load).
+- **Code Splitting**: Implemented dynamic imports for `AnalysisTab`, `AuditTab`, `MapTab`, and `ReportTab` (-300ms per navigation).
+- **Memoization**: Added `useMemo` and `useCallback` hooks to GMB page for optimized tab state management.
+- **External Resource Cleanup**: Removed default Unsplash placeholder image from PostComposer (-200ms on calendar page).
+
+### Added
+- **Agent Definitions**: Created `.github/agents/` directory with specialized agent files:
+  - `docs-agent.md`: Technical Writer with documentation boundaries.
+  - `test-agent.md`: QA Engineer with Jest patterns and AAA structure.
+  - `api-agent.md`: Backend Specialist with NestJS conventions.
+- **Loading Skeleton**: New `TabLoadingSkeleton` component in Neo-Brutalist style for dynamic imports.
+- **Type Declarations**: Added `html2pdf.d.ts` for TypeScript support.
+
+### Fixed
+- **TypeScript Error**: Removed unused `DEFAULT_CONFIG` import from `gmb/utils.ts`.
+- **Type Inference**: Fixed `posts` state typing in `calendar/page.tsx` (was `never[]`, now `any[]`).
+- **Middleware Compatibility**: Updated `middleware.ts` for Next.js 16 compatibility using `getToken` from `next-auth/jwt`.
+
+### Technical
+- **Dependencies**: Added `html2pdf.js` as npm dependency (previously loaded via CDN).
+- **Build**: Frontend now builds successfully with Turbopack.
+
+## [0.8.0] - 2025-12-11
+### Added
+- **GBP/GSC Agency Platform**: Complete multi-client management system for Google Business Profile and Search Console.
+- **Google OAuth Integration**: Secure OAuth 2.0 flow for connecting client Google accounts with mock mode for development.
+- **GBP Review Management**: Full review dashboard with location selector, rating filters, stats, and AI-powered reply suggestions.
+- **GSC Analytics**: Search performance dashboard with clicks, impressions, CTR, position tracking, and index coverage.
+- **Agency Dashboard**: Multi-client overview with client management, invite links, and cross-client review alerts.
+- **Mock Data System**: Comprehensive mock data service for development (3 locations, 7 reviews, 3 GSC properties).
+- **Database Models**: New Prisma models (`GoogleCredential`, `GbpLocation`, `GscProperty`) with cascade delete.
+
+### Technical
+- **New Backend Modules**: `GoogleAuthModule`, `GbpReviewsModule`, `GscModule`, `AgencyModule`.
+- **New Frontend Components**: `GoogleConnectButton`, `ReviewsTab`, `GscTab`, `AgencyDashboard`.
+- **API Endpoints**: 15+ new REST endpoints for auth, reviews, analytics, and agency management.
+
 ## [0.7.0] - 2025-12-10
 ### Added
 - **GMB Audit v0.3.1**: Enhanced audit capabilities with Gemini 2.5 Flash.

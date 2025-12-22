@@ -1,0 +1,27 @@
+2025-12-22 13:15:17,980 - 🏢 AGENCIA LOCAL INICIADA
+2025-12-22 13:15:17,980 - ========================
+2025-12-22 13:15:17,981 - 🕵️  SCOUT: Iniciando búsqueda de 'barberia'...
+2025-12-22 13:16:19,001 - ✅ SCOUT: Encontró 15 candidatos. Iniciando enriquecimiento...
+2025-12-22 13:16:58,556 - 📊 ANALYST: Iniciando auditoría indirecta (Google)...
+2025-12-22 13:16:58,557 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"Barberia Only Barbers" Palermo, Buenos Aires instagram'
+2025-12-22 13:18:39,182 -    📊 Veredicto Auditoría: Dormant (No se han encontrado resultados para "Barberia Only Barbers" Palermo, Buenos Aires instagram)
+2025-12-22 13:18:41,566 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"Barberia Only Barbers - Recoleta" Palermo, Buenos Aires instagram'
+2025-12-22 13:18:52,852 - ⚠️ Selector específico no hallado, intentando leer toda la página...
+2025-12-22 13:19:37,931 -    📊 Veredicto Auditoría: Unknown (No se han encontrado resultados para "Barberia Only Barbers - Recoleta" Palermo, Buenos Aires instagram)
+2025-12-22 13:19:40,411 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"Barberia Only Barbers" Palermo, Buenos Aires instagram'
+2025-12-22 13:21:00,104 -    📊 Veredicto Auditoría: Unknown (No se han encontrado resultados para "Barberia Only Barbers" Palermo, Buenos Aires instagram)
+2025-12-22 13:21:02,549 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"BARBERIA RICCI PASTRO" Palermo, Buenos Aires instagram'
+2025-12-22 13:21:13,633 - ⚠️ Selector específico no hallado, intentando leer toda la página...
+2025-12-22 13:21:53,151 -    📊 Veredicto Auditoría: Unknown ()
+2025-12-22 13:21:55,598 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"Valentins Barbershop" Palermo, Buenos Aires instagram'
+2025-12-22 13:24:00,884 - ❌ Error LLM: HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=120)
+2025-12-22 13:24:00,885 -    📊 Veredicto Auditoría: Unknown (None)
+2025-12-22 13:24:03,541 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"Valentins Barbershop" Palermo, Buenos Aires instagram'
+2025-12-22 13:25:32,272 -    📊 Veredicto Auditoría: Active (Found post from 2 days ago: ... (https://www.instagram.com/reel/DH8ci85OVRk) and another post from 5 days ago: ... (https://www.instagram.com/reel/DJhz3eES_DI))
+2025-12-22 13:25:34,773 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"Valentins Barbershop" Palermo, Buenos Aires instagram'
+2025-12-22 13:27:15,749 -    📊 Veredicto Auditoría: Active (Found recent posts with likes and comments: 21, 24, 102, 60, 53 (May 11, 2025), (April 2, 2025), October 18, 2023, October 23, 2023, November 6, 2023)
+2025-12-22 13:27:18,186 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"Valentins Barbershop" Palermo, Buenos Aires instagram'
+2025-12-22 13:28:00,480 -    📊 Veredicto Auditoría: Active (['Found post from 5 days ago: ... (2 likes, 1 comments)', 'Found post from 3 days ago: ... (24 likes, 3 comments)', 'Found post from 8 days ago: ... (102 likes, 1 comments)', 'Found post from 9 days ago: ... (60 likes, 0 comments)', 'Found post from 10 days ago: ... (53 likes, 11 comments)'])
+2025-12-22 13:28:02,944 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"Ego Barber Shop" Palermo, Buenos Aires instagram'
+2025-12-22 13:29:42,755 -    📊 Veredicto Auditoría: Active (Found post from 2 days ago, 200+ reels on Instagram and a recent review from January 16, 2025)
+2025-12-22 13:29:45,386 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"Barber Station Cañitas" Palermo, Buenos Aires instagram'

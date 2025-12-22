@@ -4,6 +4,32 @@ import { Business, SearchParams, AuditResult, StoredClient } from '../components
 // Assuming Backend is running on localhost:3000
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3000';
 
+// Agency Client type (from /agency/overview)
+export interface AgencyClient {
+    id: string;
+    name: string;
+    email?: string;
+    googleConnected: boolean;
+    gbpLocations: number;
+    pendingReviews: number;
+}
+
+export async function fetchAgencyClients(): Promise<AgencyClient[]> {
+    const res = await fetch(`${API_URL}/agency/overview`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+
+    if (!res.ok) {
+        throw new Error(`Error fetching agency clients: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data.clients || [];
+}
+
 export async function searchCompetitors(params: SearchParams): Promise<Business[]> {
     const res = await fetch(`${API_URL}/gmb/search`, {
         method: 'POST',
@@ -61,6 +87,22 @@ export async function fetchLeads(): Promise<StoredClient[]> {
 
     if (!res.ok) {
         throw new Error(`Error fetching leads: ${res.statusText}`);
+    }
+
+    return res.json();
+}
+
+export async function createClient(data: { name: string; address: string; phone?: string; category?: string }): Promise<StoredClient> {
+    const res = await fetch(`${API_URL}/gmb/clients`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+        throw new Error(`Error creating client: ${res.statusText}`);
     }
 
     return res.json();
@@ -233,5 +275,86 @@ export async function deleteTemplate(id: string) {
         method: 'DELETE',
     });
     if (!res.ok) throw new Error(`Error deleting template: ${res.statusText}`);
+    return res.json();
+}
+
+// --- Reminders ---
+
+export interface Reminder {
+    id: string;
+    title: string;
+    description?: string;
+    dueDate: string;
+    status: 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'DISMISSED';
+    user?: { id: string; name: string; email: string };
+    project?: { id: string; name: string };
+    client?: { id: string; name: string };
+}
+
+export async function getReminders(userId?: string): Promise<Reminder[]> {
+    const url = userId ? `${API_URL}/gmb/reminders?userId=${userId}` : `${API_URL}/gmb/reminders`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Error fetching reminders: ${res.statusText}`);
+    return res.json();
+}
+
+export async function createReminder(data: {
+    title: string;
+    description?: string;
+    dueDate: string;
+    userId: string;
+    projectId?: string;
+    clientId?: string;
+}): Promise<Reminder> {
+    const res = await fetch(`${API_URL}/gmb/reminders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(`Error creating reminder: ${res.statusText}`);
+    return res.json();
+}
+
+export async function updateReminder(id: string, data: { status?: string }) {
+    const res = await fetch(`${API_URL}/gmb/reminders/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(`Error updating reminder: ${res.statusText}`);
+    return res.json();
+}
+
+export async function deleteReminder(id: string) {
+    const res = await fetch(`${API_URL}/gmb/reminders/${id}`, {
+        method: 'DELETE'
+    });
+    if (!res.ok) throw new Error(`Error deleting reminder: ${res.statusText}`);
+    return res.json();
+}
+
+// --- Users ---
+
+export interface User {
+    id: string;
+    email: string;
+    name?: string;
+}
+
+export async function getUsers(): Promise<User[]> {
+    const res = await fetch(`${API_URL}/gmb/users`);
+    if (!res.ok) throw new Error(`Error fetching users: ${res.statusText}`);
+    return res.json();
+}
+
+// --- Project Assignment ---
+
+export async function assignProject(projectId: string, userId?: string) {
+    const res = await fetch(`${API_URL}/gmb/projects/${projectId}/assign`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+    });
+    if (!res.ok) throw new Error(`Error assigning project: ${res.statusText}`);
     return res.json();
 }

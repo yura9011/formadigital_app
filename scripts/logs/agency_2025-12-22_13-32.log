@@ -1,0 +1,29 @@
+2025-12-22 13:32:19,394 - 🏢 AGENCIA LOCAL INICIADA (Modo Turbo ⚡)
+2025-12-22 13:32:19,395 - ========================================
+2025-12-22 13:32:19,396 - 🕵️  SCOUT: Iniciando búsqueda de 'farmacia' en 'haedo, buenos aires'...
+2025-12-22 13:34:33,339 - ❌ Error LLM: HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=120)
+2025-12-22 13:34:43,003 - ✅ SCOUT: Encontró 5 candidatos. Iniciando procesamiento PARALELO...
+2025-12-22 13:34:43,004 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"Resultados" haedo, buenos aires instagram'
+2025-12-22 13:34:56,439 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"Farmacity" haedo, buenos aires instagram'
+2025-12-22 13:35:08,838 - 🕵️ (AUDIT) Buscando pistas (DuckDuckGo): '"Farmacity" haedo, buenos aires instagram'
+2025-12-22 13:35:16,244 - ❌ Error procesando lead Farmacity: BrowserContext.new_page: Target page, context or browser has been closed
+2025-12-22 13:35:19,684 - ❌ Error procesando lead Farmacia Rivadavia: Connection closed while reading from the driver
+2025-12-22 13:35:24,627 - Task exception was never retrieved
+future: <Task finished name='Task-39' coro=<Connection.run.<locals>.init() done, defined at C:\Users\Alpha\AppData\Roaming\Python\Python314\site-packages\playwright\_impl\_connection.py:309> exception=Exception('Connection.init: Connection closed while reading from the driver')>
+Traceback (most recent call last):
+  File "C:\Users\Alpha\AppData\Roaming\Python\Python314\site-packages\playwright\_impl\_connection.py", line 310, in init
+    self.playwright_future.set_result(await self._root_object.initialize())
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Alpha\AppData\Roaming\Python\Python314\site-packages\playwright\_impl\_connection.py", line 251, in initialize
+    await self._channel.send(
+    ...<5 lines>...
+    )
+  File "C:\Users\Alpha\AppData\Roaming\Python\Python314\site-packages\playwright\_impl\_connection.py", line 69, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\Alpha\AppData\Roaming\Python\Python314\site-packages\playwright\_impl\_connection.py", line 559, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: Connection.init: Connection closed while reading from the driver

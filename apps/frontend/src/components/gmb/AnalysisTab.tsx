@@ -83,7 +83,7 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ data, language, isReportMode 
                         </thead>
                         <tbody className="bg-white">
                             {sortedData.map((business, idx) => (
-                                <tr key={business.id} className={`${business.isClient ? (isReportMode ? "bg-blue-50" : "bg-neo-yellow/20") : "hover:bg-gray-50"} transition-colors`}>
+                                <tr key={business.id || idx} className={`${business.isClient ? (isReportMode ? "bg-blue-50" : "bg-neo-yellow/20") : "hover:bg-gray-50"} transition-colors`}>
                                     <td className={tdClass}>
                                         #{idx + 1}
                                     </td>

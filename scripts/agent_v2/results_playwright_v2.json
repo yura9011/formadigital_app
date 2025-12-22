@@ -1,0 +1,43 @@
+{
+  "success": true,
+  "clients": [
+    {
+      "name": "D'oro Italian Bar",
+      "address": "Perú 159, C1067AAC Cdad. Autónoma de Buenos Aires, Argentina",
+      "phone": "+54 11 5051-4059",
+      "website": "http://doroitalianbar.com/?utm_source=Google%20My%20Business&utm_medium=Google%20My%20Business&utm_campaign=clic%20en%20sitio",
+      "rating": 4.7,
+      "reviewCount": 10363,
+      "placeId": "ChIJLQR0nNPKvJURtyi02e1xSBc",
+      "category": "Restaurante italiano",
+      "latitude": -34.6097093,
+      "longitude": -58.3749556,
+      "googleMapsUri": null,
+      "source": "SerpApi",
+      "email": null,
+      "instagram": "https://www.instagram.com/doro.italianbar/",
+      "facebook": "https://www.facebook.com/doroitalianbar",
+      "linkedin": null,
+      "summary": "D'Oro Italian Bar is a restaurant specializing in pasta and offering a wine bar with the best labels, along with a private room for events. With over 25 years of presence in Argentina, it maintains its unique style while serving fresh products and quality attention.",
+      "gaps": [
+        "Lack of social media presence",
+        "Outdated website design",
+        "No online ordering or booking system",
+        "Missing Google My Business listing"
+      ],
+      "tier": "WARM",
+      "score": 60,
+      "enrichedAt": "2025-12-22T17:08:06.848619",
+      "type": "LEAD"
+    }
+  ],
+  "stats": {
+    "total": 1,
+    "tiers": {
+      "HOT": 0,
+      "WARM": 1,
+      "COLD": 0
+    },
+    "synced": true
+  }
+}

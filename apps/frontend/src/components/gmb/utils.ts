@@ -1,5 +1,5 @@
 
-import { Business, DEFAULT_CONFIG } from './types';
+import { Business } from './types';
 
 export const sortBusinesses = (businesses: Business[]): Business[] => {
     return [...businesses].sort((a, b) => (b.weightedScore || 0) - (a.weightedScore || 0));

@@ -1,0 +1,19 @@
+2025-12-22 17:21:27,235 - INFO - ✅ LLM Provider available: gemini
+2025-12-22 17:21:28,456 - INFO - ✅ LLM Provider available: openrouter
+2025-12-22 17:21:28,788 - INFO - ✅ LLM Provider available: huggingface
+2025-12-22 17:21:30,826 - INFO - ✅ LLM Provider available: ollama
+2025-12-22 17:21:30,827 - INFO - ==================================================
+2025-12-22 17:21:30,828 - INFO - 🚀 Starting Analysis: 'panaderia' in 'Palermo, Buenos Aires'
+2025-12-22 17:21:30,829 - INFO - ==================================================
+2025-12-22 17:21:30,830 - INFO - 🔍 Searching: 'panaderia en Palermo, Buenos Aires' (limit: 1)
+2025-12-22 17:21:31,317 - INFO - ✅ Found 1 results
+2025-12-22 17:21:31,319 - INFO - 🔎 Enriching via Google: 'La Nueva Buenos Aires Fitz Roy 2493, C1425FVG Cdad. Autónoma de Buenos Aires, Argentina'
+2025-12-22 17:21:31,757 - INFO - 🤖 Trying gemini...
+2025-12-22 17:21:31,757 - INFO -    ✨ Gemini: Trying model 'gemini-2.5-flash'...
+2025-12-22 17:21:35,174 - INFO - ✅ Analysis complete via gemini
+2025-12-22 17:21:35,174 - INFO - 🔸 DRY RUN - Skipping sync
+2025-12-22 17:21:35,174 - INFO - ==================================================
+2025-12-22 17:21:35,175 - INFO - ✅ Complete: 1 leads enriched
+2025-12-22 17:21:35,175 - INFO -    🔥 HOT: 1 | 🟡 WARM: 0 | 🔵 COLD: 0
+2025-12-22 17:21:35,175 - INFO - ==================================================
+2025-12-22 17:21:35,177 - INFO - 📁 Output saved: results_gemini_fallback.json

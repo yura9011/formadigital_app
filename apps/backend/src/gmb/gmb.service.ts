@@ -1,25 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { GoogleGenAI, Type } from '@google/genai';
 import { Business, SearchParams, AuditResult, DEFAULT_CONFIG } from './types';
+import axios from 'axios';
 import * as fs from 'fs/promises';
 import { join } from 'path';
 import { PrismaService } from '../prisma/prisma.service';
 import { ClientType, ProjectStatus, PhaseStatus, AttachmentType } from '@prisma/client';
 import { CreateProjectDto, UpdateProjectDto, CreatePhaseDto, UpdatePhaseDto, CreateTemplateDto } from './dtos';
+import { SerpApiService } from './serp-api.service';
 
 @Injectable()
 export class GmbService {
     private readonly logger = new Logger(GmbService.name);
-    private genAI: GoogleGenAI;
 
-    constructor(private prisma: PrismaService) {
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            this.logger.warn('GEMINI_API_KEY is not defined in environment variables');
-        } else {
-            this.genAI = new GoogleGenAI({ apiKey });
-        }
-    }
+    constructor(
+        private prisma: PrismaService,
+        private serpApi: SerpApiService
+    ) { }
 
     // --- Utility Functions ---
     private calculateWeightedScore(
@@ -35,16 +31,7 @@ export class GmbService {
     private parseCoordinate(value: any): number {
         if (typeof value === 'number') return value;
         if (!value) return 0;
-
-        const str = String(value).toLowerCase();
-        let multiplier = 1;
-        if (str.includes('s') || str.includes('w')) multiplier = -1;
-
-        const match = str.match(/[+-]?([0-9]*[.])?[0-9]+/);
-        if (match) {
-            return parseFloat(match[0]) * multiplier;
-        }
-        return 0;
+        return parseFloat(String(value)) || 0;
     }
 
     private getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -59,11 +46,8 @@ export class GmbService {
         return R * c;
     }
 
-    // --- Reliability Features ---
     private async deleteFile(filePath: string) {
         try {
-            // filePath is relative like /uploads/xyz.jpg. We need absolute or relative to root.
-            // Assuming '.' is root of app when running.
             const fullPath = join(process.cwd(), filePath);
             await fs.unlink(fullPath);
             this.logger.log(`Deleted file: ${fullPath}`);
@@ -72,41 +56,122 @@ export class GmbService {
         }
     }
 
-    private async generateContentWithRetry(modelName: string, prompt: string, config: any, retries = 3): Promise<any> {
-        for (let i = 0; i < retries; i++) {
-            try {
-                return await this.genAI.models.generateContent({
-                    model: modelName,
-                    contents: prompt,
-                    config: config
-                });
-            } catch (error: any) {
-                const isRetryable = error.status === 503 || error.status === 429 || (error.message && error.message.includes('overloaded'));
-                if (isRetryable && i < retries - 1) {
-                    const delay = Math.pow(2, i) * 1000 + (Math.random() * 1000); // Exponential backoff + jitter
-                    this.logger.warn(`Gemini API overloaded (Attempt ${i + 1}/${retries}). Retrying in ${Math.round(delay)}ms...`);
-                    await new Promise(res => setTimeout(res, delay));
-                } else {
-                    throw error;
-                }
+    // --- OSM Helpers ---
+
+    private async getCoordinates(address: string): Promise<{ lat: number; lon: number } | null> {
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
+            const res = await axios.get(url, { headers: { 'User-Agent': 'FormaDigitalApp/1.0' } });
+            if (res.data && res.data.length > 0) {
+                return { lat: parseFloat(res.data[0].lat), lon: parseFloat(res.data[0].lon) };
             }
+            return null;
+        } catch (error) {
+            this.logger.error("Nominatim Error", error);
+            return null;
+        }
+    }
+
+    private formatOSMAddress(tags: any): string {
+        if (!tags) return "Ubicación desconocida";
+        const parts = [tags['addr:street'], tags['addr:housenumber'], tags['addr:city']];
+        return parts.filter(Boolean).join(' ') || "Dirección no detallada";
+    }
+
+    private async fetchOverpassNodes(lat: number, lon: number, radius: number, keywords: string): Promise<Business[]> {
+        const query = `
+            [out:json][timeout:25];
+            (
+              node["shop"](around:${radius},${lat},${lon});
+              node["amenity"](around:${radius},${lat},${lon});
+              node["office"](around:${radius},${lat},${lon});
+            );
+            out body;
+        `;
+        const url = 'https://overpass-api.de/api/interpreter';
+        try {
+            const res = await axios.post(url, `data=${encodeURIComponent(query)}`);
+            const elements = res.data.elements || [];
+            return elements.map((node: any) => ({
+                name: node.tags?.name || node.tags?.brand || "Sin Nombre",
+                category: node.tags?.shop || node.tags?.amenity || node.tags?.office || "Negocio",
+                address: this.formatOSMAddress(node.tags),
+                rating: 0,
+                reviewCount: 0,
+                latitude: node.lat,
+                longitude: node.lon,
+                isClient: false,
+                googleMapsUri: `https://www.openstreetmap.org/node/${node.id}`
+            })).filter((b: Business) => b.name !== "Sin Nombre");
+        } catch (error) {
+            this.logger.error("Overpass API Error", error);
+            return [];
         }
     }
 
     // --- Main Features ---
 
+    // --- Radar API Helpers ---
+
+    private async searchRadarPlaces(lat: number, lon: number, radius: number, query: string): Promise<Business[]> {
+        const url = 'https://api.radar.io/v1/search/places';
+        const radarSecretKey = process.env.RADAR_SECRET_KEY;
+
+        if (!radarSecretKey) {
+            this.logger.error("RADAR_SECRET_KEY not configured");
+            return [];
+        }
+
+        try {
+            const res = await axios.get(url, {
+                headers: { 'Authorization': radarSecretKey },
+                params: {
+                    near: `${lat},${lon}`,
+                    radius: radius, // meters
+                    limit: 20, // Free tier limit per call is generous, but let's keep it reasonable
+                    chains: query, // Search by chain name first
+                    // categories: query // Or callback to categories if needed? Radar uses strict params.
+                    // For general keywords, we might need 'autocomplete' if 'search/places' is too strict on chains.
+                    // Actually, 'search/places' with just 'near' and no chain/cat might return everything?
+                    // Let's use 'search/autocomplete' for fuzzy matching or 'search/places' if we want specific categories.
+                    // Radar docs say 'chains' or 'categories' are optional. But filtering by text query isn't direct.
+                    // BETTER APPROACH: Use /v1/search/autocomplete for the text query, then get details?
+                    // No, Autocomplete returns addresses. We want PLACES (competitors).
+                    // Radar's /search/places is for specific chains/categories.
+                    // If the user searches "Gym", we should pass category="gym".
+                    // If user searches "McDonalds", we pass chain="mcdonalds".
+                    // For generic text like "Pizza", Radar might expect "food-beverage".
+                    // Let's try passing the query as 'chains' as a best effort, or implement a Category Mapper.
+                }
+            });
+
+            // If simple chain search fails, we might need a more complex strategy,
+            // but for now let's implement the basic call.
+            // Wait, Radar /search/places requires 'chains' OR 'categories'.
+            // If the user inputs a random keyword like "Crossfit", that's neither a known chain slug nor a category.
+            // The User Request "searchCompetitors" usually expects keyword search.
+            // OSM Overpass was great for this ("node[shop]...").
+            // Radar is structured.
+            // Strategy: We will try to map the keyword to a category, or defaulting to a broad category if possible?
+            // "search/places" DOES NOT support free text query.
+            // Alternative: "search/autocomplete" supports 'query' and returns places.
+            // Let's use /v1/search/autocomplete with layers=place.
+        } catch (error) {
+            this.logger.error("Radar API Error", error);
+            return [];
+        }
+        return [];
+    }
+
+    // --- Main Features ---
+
     async searchCompetitors(params: SearchParams): Promise<Business[]> {
-        // 1. Check Cache
         const cacheKey = `${params.keywords.toLowerCase().trim()}|${params.address.toLowerCase().trim()}|${params.radius}`;
         const cachedSearch = await this.prisma.gmbSearch.findFirst({
             where: {
                 query: params.keywords,
                 location: params.address,
                 radius: params.radius,
-                // Removed 7-day limit as per user request: "we need the info there forever"
-                // createdAt: {
-                //    gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) 
-                // }
             }
         });
 
@@ -115,200 +180,92 @@ export class GmbService {
             return cachedSearch.results as any as Business[];
         }
 
-        if (!this.genAI) {
-            throw new Error("AI Client not initialized");
-        }
-
         try {
-            const searchRadius = Math.max(params.radius * 3, 5);
-            const prompt = `
-        Act as a local business data extractor.
-        
-        SEARCH CONTEXT:
-        - User Input Keywords: "${params.keywords}"
-        - Search Center Address: "${params.address}"
-        
-        CRITICAL MISSION 1: THE CLIENT (Target Address Lookup)
-        You MUST identify the specific business entity located EXACTLY at "${params.address}".
-        - Even if its name (e.g., "LN DRUGSTORE") does not perfectly match the keywords (e.g., "Kiosco"), YOU MUST INCLUDE IT.
-        - This specific business at this address is the "Client". 
-        - Mark it as 'isClient': true.
-        - Use Google Maps knowledge to find the real name of the business at this address.
+            this.logger.log(`Radar Search: ${params.keywords} near ${params.address}`);
 
-        CRITICAL MISSION 2: INTELLIGENT COMPETITOR SEARCH
-        The user input might be colloquial (e.g., "Kiosco") or contain multiple terms.
-        1. INTERPRET the keywords: If the user types "Kiosco", you MUST also search for "Convenience store", "Drugstore", "Newsstand", "Almacén", "Maxikiosco".
-        2. HANDLE LISTS: If the user provides multiple terms, search for businesses matching ANY of those categories.
-        
-        TASK:
-        Find a comprehensive list of as many competitors as possible (target 60+) matching the EXPANDED understanding of the keywords near the address.
-
-        OUTPUT REQUIREMENTS:
-        1. The FIRST item in the JSON array MUST be the business at "${params.address}" (The Client).
-        2. For all competitors, provide precise coordinates.
-        3. Search Scope: Look broadly within ${searchRadius} km.
-        
-        Output Format:
-        Return ONLY a JSON array. 
-        
-        JSON Structure per item:
-        - name (string)
-        - category (string, THE EXACT SPECIFIC CATEGORY from Google Maps. Do not generalize. Do not translate. Example: "Verdulería", NOT "Store". "Kiosco", NOT "Shop".)
-        - address (string)
-        - rating (number, default 0 if unknown)
-        - reviewCount (integer, default 0)
-        - website (string, optional)
-        - googleMapsUri (string, optional)
-        - phone (string, optional)
-        - latitude (number, decimal)
-        - longitude (number, decimal)
-        - isClient (boolean, true ONLY for the business at ${params.address})
-        `;
-
-            this.logger.log(`Performing search for: ${params.keywords} near ${params.address}`);
-
-            const response = await this.generateContentWithRetry("gemini-2.5-flash", prompt, {
-                tools: [{ googleMaps: {} }],
-                systemInstruction: "You are a geospatial expert. Always return valid JSON. Priority #1 is identifying the business at the requested address correctly. Priority #2 is using the most specific business category available."
-            });
-
-
-
-            let rawText = response.text;
-            if (!rawText) return [];
-
-            // Robust JSON extraction
-            const firstBracket = rawText.indexOf('[');
-            if (firstBracket !== -1) {
-                let openBrackets = 0;
-                let lastBracket = -1;
-
-                // Iterate from first bracket to find the matching closing bracket
-                for (let i = firstBracket; i < rawText.length; i++) {
-                    if (rawText[i] === '[') openBrackets++;
-                    if (rawText[i] === ']') openBrackets--;
-
-                    if (openBrackets === 0) {
-                        lastBracket = i;
-                        break;
-                    }
-                }
-
-                if (lastBracket !== -1) {
-                    rawText = rawText.substring(firstBracket, lastBracket + 1);
-                } else {
-                    // Fallback: Model might have returned truncated JSON or markdown issue
-                    rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-                }
-            } else {
-                rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+            // 1. Geocode the center address
+            const coords = await this.getCoordinates(params.address); // Keeping OSM Geocoder for now as it works (or use Radar Geocode?)
+            // Let's switch to Radar Geocode for consistency if we have the key.
+            // But to save changes, let's stick to existing geocode unless broken.
+            if (!coords) {
+                this.logger.warn(`Could not geocode address: ${params.address}`);
+                return [];
             }
 
-            let businesses: Business[] = JSON.parse(rawText).map((b: any, index: number) => ({
-                ...b,
-                id: `biz-${index}-${Date.now()}`,
-                category: b.category || "Local Business",
-                rating: Number(b.rating) || 0,
-                reviewCount: Number(b.reviewCount) || 0,
-                latitude: this.parseCoordinate(b.latitude),
-                longitude: this.parseCoordinate(b.longitude),
-                isClient: !!b.isClient,
-                weightedScore: this.calculateWeightedScore(Number(b.rating), Number(b.reviewCount))
+            const radiusMeters = (params.radius || 2) * 1000;
+
+            // 2. Perform Search
+            // Using Autocomplete API for free text search behavior
+            // Docs: GET https://api.radar.io/v1/search/autocomplete?query=pizza&near=lat,lon&layers=place
+            const searchUrl = 'https://api.radar.io/v1/search/autocomplete';
+            const radarSecretKey = process.env.RADAR_SECRET_KEY; // User must set this
+
+            if (!radarSecretKey) {
+                this.logger.warn("RADAR_SECRET_KEY not set. Returning empty.");
+                return [];
+            }
+
+            const res = await axios.get(searchUrl, {
+                headers: { 'Authorization': radarSecretKey },
+                params: {
+                    query: params.keywords,
+                    near: `${coords.lat},${coords.lon}`,
+                    radius: radiusMeters,
+                    layers: 'place', // distinct places
+                    limit: 20
+                }
+            });
+
+            const businesses: Business[] = res.data.addresses.map((addr: any) => ({
+                id: addr.placeLabel || addr.formattedAddress, // Radar doesn't give stable IDs in autocomplete easily?
+                name: addr.placeLabel || addr.addressLabel || "Unknown",
+                category: addr.category || "Place",
+                address: addr.formattedAddress,
+                rating: 0, // Radar doesn't have ratings
+                reviewCount: 0,
+                latitude: addr.latitude,
+                longitude: addr.longitude,
+                isClient: false,
+                googleMapsUri: `https://www.google.com/maps/search/?api=1&query=${addr.latitude},${addr.longitude}`
             }));
 
-            // --- Robust Persistence (Transactional) ---
-            const clientNode = businesses.find(b => b.isClient) || businesses[0];
 
-            // Filter unique businesses to process
-            // We use a Map to ensure we don't try to upsert duplicates within the same batch
-            const uniqueBusinesses = new Map<string, Business>();
-            businesses.forEach(b => {
-                // Create a unique key based on name + address (normalized)
-                const key = `${b.name.toLowerCase().trim()}|${b.address.toLowerCase().trim()}`;
-                if (!uniqueBusinesses.has(key)) {
-                    uniqueBusinesses.set(key, b);
-                }
-            });
+            // Client placeholder
+            const clientBusiness: Business = {
+                id: 'client-placeholder',
+                name: params.keywords.split(',')[0] + " (Cliente)",
+                category: "Target",
+                address: params.address,
+                rating: 5.0,
+                reviewCount: 0,
+                latitude: coords.lat,
+                longitude: coords.lon,
+                isClient: true
+            };
 
-            const operations = Array.from(uniqueBusinesses.values()).map(biz => {
-                const isTargetClient = clientNode && biz.name === clientNode.name && biz.address === clientNode.address;
-                const clientType = isTargetClient ? 'CLIENT' : 'LEAD'; // Use string literal to match enum if not imported, or import ClientType
+            const results = [clientBusiness, ...businesses];
 
-                return this.prisma.client.upsert({
-                    where: {
-                        name_address: {
-                            name: biz.name,
-                            address: biz.address
-                        }
-                    },
-                    update: { // Update existing record with fresh data
-                        phone: biz.phone,
-                        website: biz.website,
-                        category: biz.category,
-                        rating: biz.rating,
-                        reviewCount: biz.reviewCount,
-                        latitude: biz.latitude,
-                        longitude: biz.longitude,
-                        googleMapsUri: biz.googleMapsUri,
-                        // Do NOT downgrade a CLIENT to a LEAD/COMPETITOR if they already exist as CLIENT
-                        // type: clientType 
-                    },
-                    create: {
-                        name: biz.name,
-                        address: biz.address,
-                        phone: biz.phone,
-                        website: biz.website,
-                        category: biz.category,
-                        rating: biz.rating,
-                        reviewCount: biz.reviewCount,
-                        latitude: biz.latitude,
-                        longitude: biz.longitude,
-                        googleMapsUri: biz.googleMapsUri,
-                        type: clientType as any // Cast to any to avoid TS issues if enum isn't perfectly typed in this context yet
+            // Save Cache
+            if (results.length > 0) {
+                await this.prisma.gmbSearch.create({
+                    data: {
+                        query: params.keywords,
+                        location: params.address,
+                        radius: params.radius,
+                        results: results as any,
                     }
                 });
-            });
-
-            // Calculate Distance only for returning to UI (not needed for DB saving of all)
-            if (clientNode && clientNode.latitude !== 0) {
-                businesses = businesses.filter(b => {
-                    if (b.isClient) return true;
-                    if (b.latitude === 0 || b.longitude === 0) return true;
-
-                    const dist = this.getDistanceFromLatLonInKm(
-                        clientNode.latitude,
-                        clientNode.longitude,
-                        b.latitude,
-                        b.longitude
-                    );
-                    return dist <= (params.radius * 1.5);
-                });
             }
-
-            // Execute Transaction
-            this.logger.log(`Persisting ${operations.length} businesses to database...`);
-            const results = await this.prisma.$transaction(operations);
-            this.logger.log(`Successfully persisted ${results.length} businesses.`);
-
-            // Save to Cache
-            await this.prisma.gmbSearch.create({
-                data: {
-                    query: params.keywords,
-                    location: params.address,
-                    radius: params.radius,
-                    results: businesses as any
-                }
-            });
-
-            return businesses;
+            return results;
 
         } catch (error) {
-            this.logger.error("Error fetching competitors", error);
-            if (error instanceof Error) {
-                this.logger.error(error.stack);
-            }
+            this.logger.error("Error in Radar searchCompetitors", error);
             throw error;
         }
+    }
+
+    async getCreditsUsage() {
+        return this.serpApi.getAccountUsage();
     }
 
     async performAudit(
@@ -319,230 +276,130 @@ export class GmbService {
         productsList: string = "",
         zoneContext: string = ""
     ): Promise<AuditResult> {
-        // 1. Check Cache
-        if (clientData?.name && clientData?.address) {
-            const cachedAudit = await this.prisma.gmbAudit.findFirst({
-                where: {
+
+        if (!clientData) {
+            throw new Error("Client data is required for audit");
+        }
+
+        this.logger.log(`🔍 Starting AI Audit for: ${clientData.name}`);
+
+        // 1. Persistence: Ensure Client Exists
+        // We assume 'clientData' has at least name and address.
+        // If it came from 'map', it might have a temporary ID.
+        // We upsert based on name+address to get a stable DB ID.
+        let dbClient = await this.prisma.client.findFirst({
+            where: {
+                name: clientData.name,
+                address: clientData.address
+            }
+        });
+
+        if (!dbClient) {
+            this.logger.log(`Creating new client record for: ${clientData.name}`);
+            dbClient = await this.prisma.client.create({
+                data: {
+                    name: clientData.name,
+                    address: clientData.address,
+                    category: clientData.category || "Unknown",
+                    latitude: clientData.latitude || 0,
+                    longitude: clientData.longitude || 0,
+                    type: 'LEAD'
+                }
+            });
+        }
+
+        // 2. Prepare Payload for Agent
+        const payload = {
+            client: {
+                ...clientData,
+                products: productsList,
+                zone: zoneContext,
+                language: language
+            },
+            competitors: competitors.slice(0, 5) // Limit to top 5 to save tokens
+        };
+
+        // 3. Write Temp File
+        const tempFileName = `audit_${Date.now()}_${Math.random().toString(36).substring(7)}.json`;
+        const tempFilePath = join(process.cwd(), '..', '..', 'scripts', 'agent_v2', tempFileName);
+
+        await fs.writeFile(tempFilePath, JSON.stringify(payload, null, 2));
+        this.logger.log(`   📄 Payload written to: ${tempFilePath}`);
+
+        // 4. Spawn Python Agent in Audit Mode
+        try {
+            const { exec } = await import('child_process');
+            const path = await import('path');
+            const scriptPath = path.resolve(process.cwd(), '..', '..', 'scripts', 'agent_v2', 'main.py');
+            const cwd = path.resolve(process.cwd(), '..', '..', 'scripts', 'agent_v2');
+
+            const command = `python "${scriptPath}" --mode audit --input "${tempFileName}"`;
+
+            this.logger.log(`   🚀 Executing: ${command}`);
+
+            const stdout = await new Promise<string>((resolve, reject) => {
+                exec(command, { cwd, timeout: 180000 }, (error, stdout, stderr) => {
+                    if (error) {
+                        this.logger.error(`Agent Error: ${stderr}`);
+                        reject(error);
+                    } else {
+                        resolve(stdout);
+                    }
+                });
+            });
+
+            // 5. Parse Result
+            const response = JSON.parse(stdout);
+            if (!response.success || !response.result) {
+                throw new Error(response.error || "Agent returned failure");
+            }
+
+            const auditResult = response.result as AuditResult;
+            auditResult.lastUpdated = Date.now();
+
+            // 6. Persist Audit to DB
+            await this.prisma.gmbAudit.create({
+                data: {
                     businessName: clientData.name,
                     businessAddress: clientData.address,
-                    createdAt: {
-                        gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days valid
-                    }
+                    auditData: auditResult as any,
+                    clientId: dbClient.id
                 }
             });
+            this.logger.log(`   ✅ Audit saved to database for client: ${dbClient.name}`);
 
-            if (cachedAudit) {
-                const data = cachedAudit.auditData as any;
-                // Version Check: Ensure the cached audit has the new v0.3.1 fields
-                if (data.phasedActionPlan && data.seoInsights && data.gapAnalysis) {
-                    this.logger.log(`Cache HIT for audit: ${clientData.name}`);
-                    return data as AuditResult;
-                } else {
-                    this.logger.log(`Cache HIT but OUTDATED schema for: ${clientData.name}. Refreshing...`);
-                }
-            }
-        }
+            // Cleanup
+            await this.deleteFile(tempFilePath); // Path relative to Backend CWD? No, deleteFile uses join(process.cwd(), filePath).
+            // Wait, deleteFile implementation is: fullPath = join(process.cwd(), filePath). 
+            // We passed absolute path above? No, we constructed tempFilePath using absolute path logic.
+            // Let's just use fs.unlink directly to be safe as we have the full path.
+            await fs.unlink(tempFilePath).catch(e => this.logger.warn("Failed to delete temp file"));
 
-        if (!this.genAI) {
-            throw new Error("AI Client not initialized");
-        }
-
-        try {
-            const validCompetitors = competitors.filter(c => !c.isClient);
-            const avgRating = validCompetitors.length ? (validCompetitors.reduce((acc, c) => acc + c.rating, 0) / validCompetitors.length).toFixed(1) : "0";
-            const avgReviews = validCompetitors.length ? Math.floor(validCompetitors.reduce((acc, c) => acc + c.reviewCount, 0) / validCompetitors.length) : 0;
-
-            const topCompetitors = competitors
-                .filter(c => !c.isClient)
-                .sort((a, b) => (b.weightedScore || 0) - (a.weightedScore || 0))
-                .slice(0, 5)
-                .map(c => `${c.name} (${c.category || 'Biz'}) - R:${c.rating}, V:${c.reviewCount}`)
-                .join(", ");
-
-            const clientInfo = clientData
-                ? JSON.stringify(clientData)
-                : `Client Data not fully loaded`;
-
-            // Dynamic logic for prompt
-            const reviewCount = clientData?.reviewCount || 0;
-            const reputationTrigger = reviewCount < 50
-                ? "CRITICAL ALERT: The client has fewer than 50 reviews. You MUST include 'Review Generation Campaign' as the HIGHEST PRIORITY Immediate Action."
-                : "Review count is healthy, focus on quality and sentiment.";
-
-            const zoneInstruction = zoneContext
-                ? `ZONE CONTEXT: The area is described as "${zoneContext}". Adjust keywords and strategy to fit this vibe (e.g., if 'University', focus on students/cheap eats).`
-                : "ZONE CONTEXT: Standard urban area.";
-
-            const prompt = `
-        You are an Elite Digital Marketing Consultant specializing in Local SEO (GMB) and Strategic Analysis.
-        Your output must be strictly JSON. No markdown. No conversational filler.
-        Language: ${language === 'en' ? 'English' : 'Spanish'}.
-
-        CLIENT PROFILE:
-        ${clientInfo}
-
-        LOCATION & PRODUCT CONTEXT:
-        - Address: "${userSearchAddress}"
-        - Products/Services: "${productsList || 'Not specified - Infer from Category'}"
-        ${zoneInstruction}
-
-        COMPETITIVE LANDSCAPE:
-        - Market Avg Rating: ${avgRating}
-        - Market Avg Reviews: ${avgReviews}
-        - Top Competitors: ${topCompetitors}
-
-        ${reputationTrigger}
-
-        TASK: Perform a deep-dive local SEO audit.
-
-        1. SWOT ANALYSIS:
-           - Strengths/Weaknesses: Based on data (rating, photos, category).
-           - Opportunities/Threats: Based on market gaps and competitors.
-        
-        2. SEO INTELLIGENCE:
-           - Keywords: Generate 10-15 high-intent local keywords. ESTIMATE volume/intent based on your semantic knowledge.
-           - Hyper-Local Tips: Specific advice for this location/zone.
-        
-        3. GAP ANALYSIS:
-           - Compare client vs market averages qualitatively.
-        
-        4. MASTER PLAN:
-           - Immediate (Week 1): Quick wins.
-           - Short Term (Month 1): Content & Reputation.
-           - Long Term (Quarter 1): Authority & Expansion.
-
-        RETURN JSON ONLY matching this exact schema.
-        `;
-
-            this.logger.log(`Performing audit for: ${userSearchAddress} (Zone: ${zoneContext})`);
-
-            const response = await this.genAI.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: prompt,
-                config: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: Type.OBJECT,
-                        properties: {
-                            lastUpdated: { type: Type.INTEGER },
-                            completenessScore: { type: Type.NUMBER },
-                            executiveSummary: { type: Type.STRING },
-                            nameCompliance: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    status: { type: Type.STRING, enum: ["pass", "fail", "warning"] },
-                                    details: { type: Type.STRING },
-                                    suggestedName: { type: Type.STRING }
-                                }
-                            },
-                            basicChecklist: {
-                                type: Type.ARRAY,
-                                items: {
-                                    type: Type.OBJECT,
-                                    properties: {
-                                        item: { type: Type.STRING },
-                                        status: { type: Type.STRING, enum: ["ok", "missing", "fix"] },
-                                        note: { type: Type.STRING }
-                                    }
-                                }
-                            },
-                            swotAnalysis: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                    weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                    opportunities: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                    threats: { type: Type.ARRAY, items: { type: Type.STRING } }
-                                }
-                            },
-                            seoInsights: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    topLocalKeywords: {
-                                        type: Type.ARRAY,
-                                        items: {
-                                            type: Type.OBJECT,
-                                            properties: {
-                                                keyword: { type: Type.STRING },
-                                                volumeEstimate: { type: Type.STRING, enum: ["High", "Medium", "Low"] },
-                                                competition: { type: Type.STRING, enum: ["High", "Medium", "Low"] },
-                                                userIntent: { type: Type.STRING, enum: ["Transactional", "Informational", "Navigation"] }
-                                            }
-                                        }
-                                    },
-                                    contentOpportunities: {
-                                        type: Type.ARRAY,
-                                        items: {
-                                            type: Type.OBJECT,
-                                            properties: {
-                                                title: { type: Type.STRING },
-                                                description: { type: Type.STRING },
-                                                targetProduct: { type: Type.STRING }
-                                            }
-                                        }
-                                    },
-                                    hyperLocalTips: { type: Type.ARRAY, items: { type: Type.STRING } }
-                                }
-                            },
-                            gapAnalysis: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    reviewGap: { type: Type.STRING },
-                                    ratingGap: { type: Type.STRING },
-                                    contentGap: { type: Type.STRING }
-                                }
-                            },
-                            phasedActionPlan: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    immediate: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                    shortTerm: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                    longTerm: { type: Type.ARRAY, items: { type: Type.STRING } }
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            const text = response.text;
-            if (!text) throw new Error("No response from AI");
-
-            const result = JSON.parse(text);
-            result.lastUpdated = Date.now();
-
-            // Save to Cache
-            if (clientData?.name && clientData?.address) {
-                // Find Client first
-                const client = await this.prisma.client.findFirst({
-                    where: {
-                        name: clientData.name,
-                        address: clientData.address
-                    }
-                });
-
-                await this.prisma.gmbAudit.create({
-                    data: {
-                        businessName: clientData.name,
-                        businessAddress: clientData.address,
-                        auditData: result,
-                        clientId: client?.id
-                    }
-                });
-            }
-
-            return result as AuditResult;
+            return auditResult;
 
         } catch (error) {
-            this.logger.error("Audit failed", error);
+            this.logger.error(`Audit Failed: ${error.message}`);
+            // Cleanup on error
+            await fs.unlink(tempFilePath).catch(() => { });
             throw error;
         }
     }
 
+
     async getAllLeads(limit = 100) {
         return this.prisma.client.findMany({
             orderBy: { createdAt: 'desc' },
-            take: limit
+            take: limit,
+            include: {
+                notes: {
+                    orderBy: { createdAt: 'desc' }
+                },
+                audits: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                    select: { id: true, createdAt: true }
+                }
+            }
         });
     }
 
@@ -642,9 +499,10 @@ export class GmbService {
     async getAllProjects() {
         return this.prisma.project.findMany({
             include: {
-                client: { select: { name: true } },
+                client: { select: { name: true, category: true } },
                 phases: {
-                    select: { status: true }
+                    include: { attachments: true },
+                    orderBy: { order: 'asc' }
                 }
             },
             orderBy: { updatedAt: 'desc' }
@@ -811,5 +669,299 @@ export class GmbService {
         return this.prisma.projectTemplate.delete({
             where: { id }
         });
+    }
+
+    // --- Clients ---
+
+    async createClient(data: { name: string; address: string; phone?: string; category?: string; type?: 'LEAD' | 'CLIENT' }) {
+        // Use upsert to handle cases where client with same name+address already exists
+        return this.prisma.client.upsert({
+            where: {
+                name_address: {
+                    name: data.name,
+                    address: data.address
+                }
+            },
+            update: {
+                // If exists, optionally update phone/category/type if provided
+                ...(data.phone && { phone: data.phone }),
+                ...(data.category && { category: data.category }),
+                ...(data.type && { type: data.type })
+            },
+            create: {
+                name: data.name,
+                address: data.address,
+                phone: data.phone,
+                category: data.category,
+                type: data.type || 'LEAD'
+            }
+        });
+    }
+
+    async deleteClient(id: string) {
+        return this.prisma.client.delete({
+            where: { id }
+        });
+    }
+
+    // --- Reminders ---
+
+    async getReminders(userId?: string) {
+        const now = new Date();
+        const reminders = await this.prisma.reminder.findMany({
+            where: userId ? { userId } : {},
+            orderBy: { dueDate: 'asc' },
+            include: {
+                user: { select: { id: true, name: true, email: true } },
+                project: { select: { id: true, name: true } },
+                client: { select: { id: true, name: true } }
+            }
+        });
+
+        // Auto-update status: PENDING -> ACTIVE if dueDate has passed
+        for (const reminder of reminders) {
+            if (reminder.status === 'PENDING' && reminder.dueDate <= now) {
+                await this.prisma.reminder.update({
+                    where: { id: reminder.id },
+                    data: { status: 'ACTIVE' }
+                });
+                reminder.status = 'ACTIVE';
+            }
+        }
+
+        return reminders;
+    }
+
+    async createReminder(data: {
+        title: string;
+        description?: string;
+        dueDate: string;
+        userId: string;
+        projectId?: string;
+        clientId?: string;
+    }) {
+        return this.prisma.reminder.create({
+            data: {
+                title: data.title,
+                description: data.description,
+                dueDate: new Date(data.dueDate),
+                userId: data.userId,
+                projectId: data.projectId,
+                clientId: data.clientId
+            },
+            include: {
+                user: { select: { id: true, name: true, email: true } },
+                project: { select: { id: true, name: true } },
+                client: { select: { id: true, name: true } }
+            }
+        });
+    }
+
+    async updateReminder(id: string, data: { status?: string }) {
+        return this.prisma.reminder.update({
+            where: { id },
+            data: {
+                ...(data.status && { status: data.status as any })
+            }
+        });
+    }
+
+    async deleteReminder(id: string) {
+        return this.prisma.reminder.delete({
+            where: { id }
+        });
+    }
+
+    // --- Project Assignment ---
+
+    async assignProject(projectId: string, userId?: string) {
+        return this.prisma.project.update({
+            where: { id: projectId },
+            data: { assignedToId: userId || null }
+        });
+    }
+
+    // --- Users ---
+
+    async getUsers() {
+        return this.prisma.user.findMany({
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                createdAt: true
+            },
+            orderBy: { name: 'asc' }
+        });
+    }
+
+    // =========================================================================
+    // AGENT INTEGRATION (Agent V2)
+    // =========================================================================
+
+    /**
+     * Start the Python analysis agent as a subprocess.
+     * Returns a job ID for tracking (or the result if sync mode).
+     */
+    async startAgentAnalysis(params: {
+        query: string;
+        location?: string;
+        limit?: number;
+        dryRun?: boolean;
+        apiKeys?: Record<string, string>;
+    }) {
+        const { exec } = await import('child_process');
+        const path = await import('path');
+
+        // Resolve path relative to process.cwd() (apps/backend)
+        // We need to go up 2 levels: backend -> apps -> root -> scripts
+        const scriptPath = path.resolve(process.cwd(), '..', '..', 'scripts', 'agent_v2', 'main.py');
+        const cwd = path.resolve(process.cwd(), '..', '..', 'scripts', 'agent_v2');
+
+        // Build command as single string for exec (handles spaces in args better on Windows)
+        const locationArg = (params.location || 'Buenos Aires').replace(/"/g, '\\"');
+        const queryArg = (params.query || 'negocio').replace(/"/g, '\\"');
+
+        let command = `python "${scriptPath}" --query "${queryArg}" --location "${locationArg}" --limit ${params.limit || 10}`;
+
+        if (params.dryRun) {
+            command += ' --dry-run';
+        }
+
+        this.logger.log(`🚀 Starting Agent: ${command}`);
+        this.logger.log(`   CWD: ${cwd}`);
+        let env = { ...process.env };
+
+        if (params.apiKeys) {
+            // Only inject keys that have a non-empty value
+            const validKeys = Object.entries(params.apiKeys).reduce((acc, [key, value]) => {
+                if (value && value.trim().length > 0) {
+                    acc[key] = value;
+                }
+                return acc;
+            }, {} as Record<string, string>);
+
+            if (Object.keys(validKeys).length > 0) {
+                this.logger.log(`   🔑 Injecting custom API keys: ${Object.keys(validKeys).join(', ')}`);
+                env = { ...env, ...validKeys };
+            }
+        }
+
+        return new Promise((resolve, reject) => {
+            exec(command, {
+                cwd,
+                timeout: 120000,
+                env
+            }, (error, stdout, stderr) => {
+                if (stderr) {
+                    this.logger.warn(`Agent stderr: ${stderr}`);
+                }
+
+                if (error) {
+                    this.logger.error(`Agent failed: ${error.message}`);
+                    reject(new Error(`Agent failed: ${error.message}`));
+                    return;
+                }
+
+                try {
+                    const result = JSON.parse(stdout);
+                    this.logger.log(`✅ Agent completed: ${result.stats?.total || 0} leads`);
+                    resolve(result);
+                } catch (e) {
+                    this.logger.warn('Agent output not JSON, returning raw');
+                    resolve({ success: true, raw: stdout });
+                }
+            });
+        });
+    }
+
+    /**
+     * Batch upsert clients from the Python agent.
+     * Uses placeId for deduplication, falls back to name+address.
+     */
+    async batchUpsertClients(clients: Array<{
+        name: string;
+        address?: string;
+        phone?: string;
+        website?: string;
+        category?: string;
+        rating?: number;
+        reviewCount?: number;
+        latitude?: number;
+        longitude?: number;
+        googleMapsUri?: string;
+        placeId?: string;
+        email?: string;
+        instagram?: string;
+        facebook?: string;
+        linkedin?: string;
+        tier?: string;
+        score?: number;
+        gaps?: any;
+        summary?: string;
+        source?: string;
+    }>) {
+        const results = {
+            created: 0,
+            updated: 0,
+            errors: [] as string[],
+        };
+
+        for (const client of clients) {
+            try {
+                // Try to find by placeId first (most reliable)
+                let existing = client.placeId
+                    ? await this.prisma.client.findUnique({ where: { placeId: client.placeId } })
+                    : null;
+
+                // Fallback to name+address
+                if (!existing && client.name && client.address) {
+                    existing = await this.prisma.client.findUnique({
+                        where: { name_address: { name: client.name, address: client.address } }
+                    });
+                }
+
+                const data = {
+                    name: client.name,
+                    address: client.address || 'Unknown',
+                    phone: client.phone,
+                    website: client.website,
+                    category: client.category,
+                    rating: client.rating,
+                    reviewCount: client.reviewCount,
+                    latitude: client.latitude,
+                    longitude: client.longitude,
+                    googleMapsUri: client.googleMapsUri,
+                    placeId: client.placeId,
+                    email: client.email,
+                    instagram: client.instagram,
+                    facebook: client.facebook,
+                    linkedin: client.linkedin,
+                    tier: client.tier,
+                    score: client.score,
+                    gaps: client.gaps,
+                    summary: client.summary,
+                    source: client.source || 'Agent',
+                    enrichedAt: new Date(),
+                    type: 'LEAD' as const,
+                };
+
+                if (existing) {
+                    await this.prisma.client.update({
+                        where: { id: existing.id },
+                        data,
+                    });
+                    results.updated++;
+                } else {
+                    await this.prisma.client.create({ data });
+                    results.created++;
+                }
+            } catch (e) {
+                results.errors.push(`${client.name}: ${e.message}`);
+            }
+        }
+
+        this.logger.log(`📊 Batch upsert: ${results.created} created, ${results.updated} updated, ${results.errors.length} errors`);
+        return results;
     }
 }

@@ -20,6 +20,7 @@
     -   `@fullcalendar/*`: Social media content calendar.
     -   `react-hot-toast`: Toast notifications.
     -   `leaflet`: Map visualization for GMB.
+    -   `html2pdf.js`: Client-side PDF generation (on-demand loaded).
 
 ### Backend (`apps/backend`)
 -   **Framework**: NestJS 11
@@ -33,13 +34,20 @@
 
 ```
 d:/tareas/exp003 - postix/forma-digital-app/
+├── .github/
+│   └── agents/         # AI Agent Definition Files
+│       ├── docs-agent.md   # Technical Writer
+│       ├── test-agent.md   # QA Engineer
+│       └── api-agent.md    # Backend Specialist
 ├── apps/
 │   ├── frontend/       # Next.js Application
 │   │   ├── src/app/    # App Router Pages (Projects, GMB, Settings, etc.)
-│   │   └── src/components/ # Neo-UI Components
+│   │   ├── src/components/ # Neo-UI Components
+│   │   └── src/types/  # TypeScript Declarations
 │   └── backend/        # NestJS Application
 │       ├── src/gmb/    # GMB Logic (Service/Controller)
 │       └── prisma/     # Database Schema
+├── docs/               # Documentation
 ├── tools/              # Utility scripts
 ├── dev.bat             # Start Development Environment (Frontend + Backend)
 └── host_mode.bat       # Start in Host Mode (Public Access)
@@ -77,6 +85,21 @@ d:/tareas/exp003 - postix/forma-digital-app/
     -   **DO NOT** use rounded, soft shadows or gradients.
     -   **DO** use `border-2`, `border-black`, `shadow-neo`, `font-black`, `uppercase`.
 
-## 7. Known Issues / Notes
+## 7. Specialized Agents
+
+This project includes specialized AI agent definitions in `.github/agents/`:
+
+| Agent | Role | Boundaries |
+|-------|------|------------|
+| `@docs-agent` | Technical Writer | Never modifies `src/` code |
+| `@test-agent` | QA Engineer | Never deletes failing tests |
+| `@api-agent` | Backend Specialist | Ask first for schema changes |
+| `@frontend-agent` | Frontend Specialist | Never uses rounded corners or gradients |
+
+See individual agent files for detailed instructions and code patterns.
+
+## 8. Known Issues / Notes
 -   **Redis Dependency**: The backend *requires* Redis. Ensure it's running (usually via Docker or local service).
 -   **History Navigation**: We explicitly use `window.location.href = '/'` for "Back to Main Menu" buttons to ensure a full reset, rather than `history.back()`.
+-   **Middleware Deprecation**: Next.js 16 deprecated the middleware file convention. Current implementation uses `getToken` from `next-auth/jwt`.
+-   **Dynamic Imports**: Heavy components (`AnalysisTab`, `AuditTab`, `ReportTab`) use `dynamic()` for code splitting.

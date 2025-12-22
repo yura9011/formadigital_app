@@ -1,0 +1,61 @@
+{
+  "success": true,
+  "clients": [
+    {
+      "name": "PARRILLA EL VIEJO PALERMO",
+      "address": "Gorriti 5608, C1414 Cdad. Autónoma de Buenos Aires, Argentina",
+      "phone": "+54 9 11 6839-9825",
+      "website": null,
+      "rating": 4.4,
+      "reviewCount": 983,
+      "placeId": "ChIJqyddeCe1vJURv2edXKM0jxU",
+      "category": "Parrilla",
+      "latitude": -34.5849743,
+      "longitude": -58.4374493,
+      "googleMapsUri": null,
+      "source": "SerpApi",
+      "summary": "Parrilla El Viejo Palermo is a traditional steakhouse business. It likely serves grilled meats and other Argentinian cuisine, possibly located in the Palermo neighborhood.",
+      "gaps": [
+        "No website available"
+      ],
+      "tier": "HOT",
+      "score": 95,
+      "enrichedAt": "2025-12-22T16:46:00.759488",
+      "type": "LEAD"
+    },
+    {
+      "name": "Hierro Parrilla Palermo",
+      "address": "Costa Rica 5602, C1414 Cdad. Autónoma de Buenos Aires, Argentina",
+      "phone": "+54 11 2875-6355",
+      "website": "/url?q=https://hierrocasadefuegos.com/&opi=79508299&sa=U&ved=0ahUKEwj22Kzk-tGRAxUlhIkEHa1PN08Q61gIgQEoDw&usg=AOvVaw0mhMc8XJ9fdQC71Qf4gI1D",
+      "rating": 4.7,
+      "reviewCount": 9414,
+      "placeId": "ChIJz4s49NS1vJURNcKN4A83lnM",
+      "category": "Restaurante",
+      "latitude": -34.5827039,
+      "longitude": -58.4348812,
+      "googleMapsUri": null,
+      "source": "SerpApi",
+      "email": null,
+      "instagram": null,
+      "facebook": null,
+      "linkedin": null,
+      "tier": "HOT",
+      "score": 85,
+      "gaps": [
+        "Website unavailable"
+      ],
+      "enrichedAt": "2025-12-22T16:45:51.142676",
+      "type": "LEAD"
+    }
+  ],
+  "stats": {
+    "total": 2,
+    "tiers": {
+      "HOT": 2,
+      "WARM": 0,
+      "COLD": 0
+    },
+    "synced": true
+  }
+}

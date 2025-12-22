@@ -1,0 +1,6 @@
+2025-12-22 16:17:25,354 - WARNING - ⚠️ SERPAPI_KEY not set. Search will fail.
+2025-12-22 16:17:27,446 - INFO - ✅ LLM Provider available: ollama
+2025-12-22 16:17:27,447 - INFO - ==================================================
+2025-12-22 16:17:27,447 - INFO - 🚀 Starting Analysis: 'test' in 'Buenos Aires'
+2025-12-22 16:17:27,447 - INFO - ==================================================
+2025-12-22 16:17:27,447 - ERROR - ❌ Cannot search: SERPAPI_KEY not configured

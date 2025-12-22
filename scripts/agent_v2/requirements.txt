@@ -1,0 +1,25 @@
+# Agent V2 - Agentic Analysis System
+# Dependencies for Local Analysis Agent
+
+# Core
+python-dotenv>=1.0.0
+requests>=2.31.0
+pandas>=2.0.0
+
+# Web Scraping
+playwright>=1.40.0
+beautifulsoup4>=4.12.0
+
+# LLM Providers
+google-generativeai>=0.3.0    # Gemini
+openai>=1.0.0                 # OpenRouter (uses OpenAI-compatible API)
+huggingface-hub>=0.20.0       # HuggingFace Inference
+
+# Search
+# serpapi requires google-search-results package
+google-search-results>=2.4.2
+
+# Utilities
+aiohttp>=3.9.0
+tenacity>=8.2.0               # Retry logic
+pydantic>=2.0.0               # Data validation

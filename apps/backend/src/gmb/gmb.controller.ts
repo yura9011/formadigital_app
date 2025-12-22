@@ -1,9 +1,9 @@
 
-import { Controller, Get, Post, Body, Param, Patch, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { CreateProjectDto, UpdateProjectDto, CreatePhaseDto, UpdatePhaseDto, CreateTemplateDto, ReorderPhaseDto } from './dtos';
+import { CreateProjectDto, UpdateProjectDto, CreatePhaseDto, UpdatePhaseDto, CreateTemplateDto, ReorderPhaseDto, CreateClientDto } from './dtos';
 import { GmbService } from './gmb.service';
 import type { SearchParams, Business } from './types';
 import { ProjectStatus, PhaseStatus } from '@prisma/client';
@@ -11,6 +11,11 @@ import { ProjectStatus, PhaseStatus } from '@prisma/client';
 @Controller('gmb')
 export class GmbController {
     constructor(private readonly gmbService: GmbService) { }
+
+    @Get('credits')
+    async getCredits() {
+        return this.gmbService.getCreditsUsage();
+    }
 
     @Post('search')
     async search(@Body() params: any) {
@@ -41,14 +46,24 @@ export class GmbController {
         return this.gmbService.getAllLeads();
     }
 
+    @Post('clients')
+    async createClient(@Body() data: CreateClientDto) {
+        return this.gmbService.createClient(data);
+    }
+
     @Get('client/:id')
     async getClient(@Param('id') id: string) {
         return this.gmbService.getClient(id);
     }
 
-    @Patch('client/:id')
+    @Patch('clients/:id')
     async updateClient(@Param('id') id: string, @Body() data: any) {
         return this.gmbService.updateClient(id, data);
+    }
+
+    @Delete('clients/:id')
+    async deleteClient(@Param('id') id: string) {
+        return this.gmbService.deleteClient(id);
     }
 
     @Post('client/:id/notes')
@@ -139,5 +154,76 @@ export class GmbController {
     @Delete('templates/:id')
     async deleteTemplate(@Param('id') id: string) {
         return this.gmbService.deleteTemplate(id);
+    }
+
+    // --- Reminders ---
+
+    @Get('reminders')
+    async getReminders(@Query('userId') userId?: string) {
+        return this.gmbService.getReminders(userId);
+    }
+
+    @Post('reminders')
+    async createReminder(@Body() data: {
+        title: string;
+        description?: string;
+        dueDate: string;
+        userId: string;
+        projectId?: string;
+        clientId?: string;
+    }) {
+        return this.gmbService.createReminder(data);
+    }
+
+    @Patch('reminders/:id')
+    async updateReminder(@Param('id') id: string, @Body() data: { status?: string }) {
+        return this.gmbService.updateReminder(id, data);
+    }
+
+    @Delete('reminders/:id')
+    async deleteReminder(@Param('id') id: string) {
+        return this.gmbService.deleteReminder(id);
+    }
+
+    // --- Project Assignment ---
+
+    @Patch('projects/:id/assign')
+    async assignProject(@Param('id') id: string, @Body() data: { userId?: string }) {
+        return this.gmbService.assignProject(id, data.userId);
+    }
+
+    @Get('users')
+    async getUsers() {
+        return this.gmbService.getUsers();
+    }
+
+    // =========================================================================
+    // AGENT INTEGRATION (Agent V2)
+    // =========================================================================
+
+    /**
+     * Start the Python analysis agent.
+     * POST /api/gmb/analysis/start
+     * Body: { query: string, location?: string, limit?: number, dryRun?: boolean }
+     */
+    @Post('analysis/start')
+    async startAnalysis(@Body() body: {
+        query: string;
+        location?: string;
+        limit?: number;
+        dryRun?: boolean;
+        apiKeys?: Record<string, string>;
+    }) {
+        return this.gmbService.startAgentAnalysis(body);
+    }
+
+    /**
+     * Batch upsert clients from agent results.
+     * POST /api/gmb/clients/batch
+     * Body: { clients: Array<ClientData> }
+     */
+    @Post('clients/batch')
+    async batchUpsertClients(@Body() body: { clients: any[] }) {
+        return this.gmbService.batchUpsertClients(body.clients);
     }
 }

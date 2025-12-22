@@ -1,0 +1,22 @@
+2025-12-22 11:24:09,412 - INFO - ==================================================
+2025-12-22 11:24:09,412 - INFO - 🚀 INICIANDO DEEP DISCOVERY CON ENRIQUECIMIENTO WEB
+2025-12-22 11:24:09,412 - INFO - ==================================================
+2025-12-22 11:24:10,678 - INFO - 🔎 Iniciando: 'restaurant' en 'Palermo, Buenos Aires'
+2025-12-22 11:24:16,368 - INFO - 📋 Encontrados 21. Procesando 5...
+2025-12-22 11:24:19,818 - INFO - 📍 Resultados
+2025-12-22 11:24:19,819 - INFO - 🌐 Enriqueciendo: Visitando http://www.somosdham.com/...
+2025-12-22 11:24:21,049 - WARNING -    ⚠️ Error buscando emails: 'Locator' object has no attribute 'all_attributes'
+2025-12-22 11:24:23,463 - INFO - 📍 Resultados
+2025-12-22 11:24:25,924 - INFO - 📍 Resultados
+2025-12-22 11:24:25,925 - INFO - 🌐 Enriqueciendo: Visitando https://hierrocasadefuegos.com/...
+2025-12-22 11:24:26,732 - WARNING -    ⚠️ Error buscando emails: 'Locator' object has no attribute 'all_attributes'
+2025-12-22 11:24:29,433 - INFO - 📍 Resultados
+2025-12-22 11:24:29,433 - INFO - 🌐 Enriqueciendo: Visitando https://hierrocasadefuegos.com/...
+2025-12-22 11:24:30,054 - WARNING -    ⚠️ Error buscando emails: 'Locator' object has no attribute 'all_attributes'
+2025-12-22 11:24:32,863 - INFO - 📍 Resultados
+2025-12-22 11:24:32,864 - INFO - 🌐 Enriqueciendo: Visitando https://hierrocasadefuegos.com/...
+2025-12-22 11:24:33,552 - WARNING -    ⚠️ Error buscando emails: 'Locator' object has no attribute 'all_attributes'
+2025-12-22 11:24:34,686 - INFO - ✨ Reporte generado: prospecting_results\report_20251222_1124.html
+2025-12-22 11:24:34,687 - INFO - ==================================================
+2025-12-22 11:24:34,687 - INFO - ✅ PROCESO FINALIZADO
+2025-12-22 11:24:34,687 - INFO - 📂 Ver resultados en: D:\tareas\exp003 - postix\forma-digital-app\scripts\prospecting_results

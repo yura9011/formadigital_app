@@ -1,0 +1,19 @@
+2025-12-22 16:51:06,174 - INFO - ✅ LLM Provider available: gemini
+2025-12-22 16:51:06,174 - INFO - ✅ LLM Provider available: openrouter
+2025-12-22 16:51:06,175 - INFO - ✅ LLM Provider available: huggingface
+2025-12-22 16:51:08,208 - INFO - ✅ LLM Provider available: ollama
+2025-12-22 16:51:08,210 - INFO - ==================================================
+2025-12-22 16:51:08,210 - INFO - 🚀 Starting Analysis: 'restaurante' in 'Buenos Aires'
+2025-12-22 16:51:08,210 - INFO - ==================================================
+2025-12-22 16:51:08,211 - INFO - 🔍 Searching: 'restaurante en Buenos Aires' (limit: 1)
+2025-12-22 16:51:08,860 - INFO - ✅ Found 1 results
+2025-12-22 16:51:08,862 - INFO - 🔎 Enriching via Google: 'D'oro Italian Bar Perú 159, C1067AAC Cdad. Autónoma de Buenos Aires, Argentina'
+2025-12-22 16:51:15,516 - INFO - 🌐 Scraping: http://doroitalianbar.com/?utm_source=Google%20My%20Business&utm_medium=Google%20My%20Business&utm_campaign=clic%20en%20sitio
+2025-12-22 16:51:18,560 - INFO - 🤖 Trying gemini...
+2025-12-22 16:51:26,464 - INFO - ✅ Analysis complete via gemini
+2025-12-22 16:51:26,466 - INFO - 🔸 DRY RUN - Skipping sync
+2025-12-22 16:51:26,466 - INFO - ==================================================
+2025-12-22 16:51:26,467 - INFO - ✅ Complete: 1 leads enriched
+2025-12-22 16:51:26,467 - INFO -    🔥 HOT: 0 | 🟡 WARM: 1 | 🔵 COLD: 0
+2025-12-22 16:51:26,468 - INFO - ==================================================
+2025-12-22 16:51:26,473 - INFO - 📁 Output saved: results_meta_v2.json

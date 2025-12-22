@@ -1,0 +1,100 @@
+{
+  "success": true,
+  "clients": [
+    {
+      "name": "D'oro Italian Bar",
+      "address": "Perú 159, C1067AAC Cdad. Autónoma de Buenos Aires, Argentina",
+      "phone": "+54 11 5051-4059",
+      "website": "http://doroitalianbar.com/?utm_source=Google%20My%20Business&utm_medium=Google%20My%20Business&utm_campaign=clic%20en%20sitio",
+      "rating": 4.7,
+      "reviewCount": 10363,
+      "placeId": "ChIJLQR0nNPKvJURtyi02e1xSBc",
+      "category": "Restaurante italiano",
+      "latitude": -34.6097093,
+      "longitude": -58.3749556,
+      "googleMapsUri": null,
+      "source": "SerpApi",
+      "email": null,
+      "instagram": "https://www.instagram.com/doro.italianbar/",
+      "facebook": "https://www.facebook.com/doroitalianbar",
+      "linkedin": null,
+      "summary": "D'oro Italian Bar is an established Italian restaurant and wine bar in Buenos Aires, Argentina, operating since 1999 and known for its authentic cuisine, fresh ingredients, and famous pasta. Located in a historic area, it offers dining, private event hosting, and an online store for Italian wines.",
+      "gaps": [
+        "Lack of direct social media links (only mentions 'Follow us on our networks')",
+        "Non-functional contact form (deactivated due to reCAPTCHA issues)",
+        "No direct link to the restaurant menu",
+        "Repetitive content and call-to-actions, suggesting potential for improved website information architecture and user experience"
+      ],
+      "tier": "WARM",
+      "score": 65,
+      "enrichedAt": "2025-12-22T16:31:37.164898",
+      "type": "LEAD"
+    },
+    {
+      "name": "Puny - Pasta & Grill",
+      "address": "Av. Corrientes 1269, C1043 Cdad. Autónoma de Buenos Aires, Argentina",
+      "phone": "+54 11 2246-4521",
+      "website": null,
+      "rating": 4.9,
+      "reviewCount": 39950,
+      "placeId": "ChIJo-2LVIzLvJURlCJpJvE5Ls8",
+      "category": "Restaurante",
+      "latitude": -34.6037323,
+      "longitude": -58.384722999999994,
+      "googleMapsUri": null,
+      "source": "SerpApi",
+      "summary": "Puny - Pasta & Grill is a restaurant business. Based on its name, it likely specializes in pasta and grilled dishes.",
+      "gaps": [
+        "No website available",
+        "Likely no online menu",
+        "Likely no online ordering/reservations",
+        "Likely no social media presence",
+        "Lack of digital presence for customer engagement and marketing"
+      ],
+      "tier": "HOT",
+      "score": 95,
+      "enrichedAt": "2025-12-22T16:31:27.971598",
+      "type": "LEAD"
+    },
+    {
+      "name": "Calden del Soho",
+      "address": "Honduras 4701, C1414BMK Cdad. Autónoma de Buenos Aires, Argentina",
+      "phone": "+54 11 3031-2221",
+      "website": "https://caldendelsoho.com/",
+      "rating": 4.5,
+      "reviewCount": 5079,
+      "placeId": "ChIJRxzJdXjKvJURF2yGVvAUz28",
+      "category": "Restaurante argentino",
+      "latitude": -34.5906478,
+      "longitude": -58.427046999999995,
+      "googleMapsUri": null,
+      "source": "SerpApi",
+      "email": "caldendelsoho@gmail.com",
+      "instagram": "https://www.instagram.com/caldendelsoho?igsh=MTJwbDI2OXZjeTl5MA==",
+      "facebook": null,
+      "linkedin": null,
+      "summary": "Caldén del Soho is a legendary Argentine parrilla and pasta restaurant in Palermo Soho, Buenos Aires, known for its incredible meats like ojo de bife and famous tiramisú. With over six decades of family history, it has hosted numerous celebrities including Diego Maradona and Freddie Mercury, offering a blend of rustic charm and modern design.",
+      "gaps": [
+        "Lack of direct links to social media profiles (only an Instagram handle is provided).",
+        "No explicit mention or integration of an online reservation system.",
+        "Absence of direct links to a comprehensive online menu.",
+        "No information about other social media platforms beyond Instagram.",
+        "Website's modernity, mobile-friendliness, and SEO performance cannot be assessed from the content.",
+        "Limited evidence of active digital marketing strategies beyond basic contact information."
+      ],
+      "tier": "WARM",
+      "score": 65,
+      "enrichedAt": "2025-12-22T16:31:35.436114",
+      "type": "LEAD"
+    }
+  ],
+  "stats": {
+    "total": 3,
+    "tiers": {
+      "HOT": 1,
+      "WARM": 2,
+      "COLD": 0
+    },
+    "synced": true
+  }
+}

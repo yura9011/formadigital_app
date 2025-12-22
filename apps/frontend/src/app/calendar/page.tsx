@@ -1,308 +1,234 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import PostComposer from '../../components/PostComposer';
-import { NeoButton } from '../../components/neo/NeoButton';
 import { NeoCard } from '../../components/neo/NeoCard';
-import { toast, Toaster } from 'react-hot-toast';
+import { NeoButton } from '../../components/neo/NeoButton';
+import { withAuth } from '../../components/auth/withAuth';
+// import GoogleConnectButton from '../../components/google/GoogleConnectButton'; // Verify path
+import toast from 'react-hot-toast';
+import { CalendarEventModal } from '../../components/calendar/CalendarEventModal';
 
-export default function CalendarPage() {
-    const [posts, setPosts] = useState([]);
-    const [isComposerOpen, setIsComposerOpen] = useState(false);
-    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-    const [selectedPost, setSelectedPost] = useState<any | null>(null);
+function CalendarPage() {
+    const [events, setEvents] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isConnected, setIsConnected] = useState(true);
 
-    const fetchPosts = async () => {
-        try {
-            // 1. Fetch Local Scheduled Posts
-            const postsRes = await fetch('http://localhost:3000/posts');
-            const localPosts = await postsRes.json();
+    // Modal State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
-            // 2. Fetch Integrations to get ID
-            const integrationsRes = await fetch('http://localhost:3000/integrations');
-            const integrations = await integrationsRes.json();
-
-            let externalEvents: any[] = [];
-
-            // 3. Fetch External Media for the first VALID integration (MVP)
-            const validIntegration = integrations.find((i: any) => i.accountId && i.provider === 'instagram');
-
-            if (validIntegration) {
-                const integrationId = validIntegration.id;
-                try {
-                    const mediaRes = await fetch(`http://localhost:3000/integrations/${integrationId}/media`);
-                    if (mediaRes.ok) {
-                        const mediaData = await mediaRes.json();
-                        externalEvents = mediaData.map((media: any) => ({
-                            title: (media.caption || 'No Caption').substring(0, 20) + '...',
-                            start: media.timestamp,
-                            backgroundColor: '#ffffff',
-                            borderColor: '#000000',
-                            textColor: '#000000',
-                            extendedProps: {
-                                id: media.id,
-                                content: media.caption || '',
-                                publishDate: media.timestamp,
-                                state: 'PUBLISHED',
-                                integration: { name: 'Instagram (History)' },
-                                media: [{ path: media.media_url || media.thumbnail_url }]
-                            }
-                        }));
-                    }
-                } catch (e) {
-                    console.error("Failed to fetch external media", e);
-                }
-            }
-
-            // 5. Fetch Google Calendar Events
-            try {
-                const googleRes = await fetch('http://localhost:3000/google/events');
-                if (googleRes.ok) {
-                    const googleEventsData = await googleRes.json();
-                    const googleEvents = googleEventsData.map((ev: any) => ({
-                        title: `📅 ${ev.summary}`,
-                        start: ev.start.dateTime || ev.start.date,
-                        end: ev.end.dateTime || ev.end.date,
-                        backgroundColor: '#4285F4', // Google Blue
-                        borderColor: '#000000',
-                        textColor: '#white',
-                        extendedProps: {
-                            id: ev.id,
-                            content: ev.description || ev.summary,
-                            publishDate: ev.start.dateTime || ev.start.date,
-                            state: 'GOOGLE_EVENT',
-                            integration: { name: 'Google Calendar' }
-                        }
-                    }));
-                    externalEvents = [...externalEvents, ...googleEvents];
-                }
-            } catch (e) {
-                console.warn("Google Calendar not connected or failed");
-            }
-
-            // 6. Map Local Posts
-            const localEvents = localPosts.map((post: any) => ({
-                title: post.content.substring(0, 20) + '...',
-                start: post.publishDate,
-                backgroundColor: '#ffffff',
-                borderColor: '#000000',
-                textColor: '#000000',
-                extendedProps: { ...post }
-            }));
-
-            // 7. Merge
-            setPosts([...localEvents, ...externalEvents]);
-
-        } catch (err) {
-            console.error("Failed to fetch posts", err);
-        }
-    };
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
-        // Check for success param
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('success') === 'true') {
-            toast.success('Google Calendar Connected!');
-            // Clean URL
-            window.history.replaceState({}, '', '/calendar');
-        } else if (urlParams.get('error')) {
-            toast.error('Failed to connect Google Calendar');
-        }
-
-        fetchPosts();
+        loadEvents();
     }, []);
 
+    const loadEvents = async () => {
+        setIsLoading(true);
+        const userId = localStorage.getItem('currentUserId');
+        if (!userId) {
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/calendar/events?userId=${userId}`);
+
+            if (res.status === 401 || res.status === 403) {
+                const errData = await res.json().catch(() => ({}));
+                setErrorMessage(errData.message || 'Error de autenticación');
+                setIsConnected(false);
+                setIsLoading(false);
+                return;
+            }
+
+            if (res.ok) {
+                const data = await res.json();
+                // Transform Google Events to FullCalendar format
+                const formattedEvents = data.map((evt: any) => ({
+                    id: evt.id,
+                    title: evt.summary,
+                    start: evt.start.dateTime || evt.start.date,
+                    end: evt.end.dateTime || evt.end.date,
+                    backgroundColor: '#1E1E1E', // Neo-black
+                    borderColor: '#000000',
+                    textColor: '#FFFFFF',
+                    extendedProps: {
+                        description: evt.description
+                    }
+                }));
+                setEvents(formattedEvents);
+                setIsConnected(true);
+                setErrorMessage('');
+            }
+        } catch (error) {
+            console.error('Error fetching events', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleDateClick = (arg: any) => {
-        setSelectedDate(arg.dateStr);
-        setIsComposerOpen(true);
-        setSelectedPost(null);
+        setSelectedEvent({ start: arg.dateStr });
+        setIsModalOpen(true);
     };
 
-    const handleEventClick = (arg: any) => {
-        setSelectedPost(arg.event.extendedProps);
-        setIsComposerOpen(false);
+    const handleEventClick = (info: any) => {
+        info.jsEvent.preventDefault();
+        setSelectedEvent({
+            id: info.event.id,
+            title: info.event.title,
+            start: info.event.start,
+            end: info.event.end,
+            description: info.event.extendedProps.description
+        });
+        setIsModalOpen(true);
     };
 
-    const [showErrors, setShowErrors] = useState(false);
+    const handleSaveEvent = async (eventData: any) => {
+        const userId = localStorage.getItem('currentUserId');
+        if (!userId) return;
 
-    // Filter posts based on showErrors
-    const visiblePosts = posts.filter((p: any) => showErrors || p.extendedProps?.state !== 'ERROR');
+        try {
+            let res;
+            if (eventData.id) {
+                res = await fetch(`${API_BASE}/calendar/events/${eventData.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...eventData, userId })
+                });
+            } else {
+                res = await fetch(`${API_BASE}/calendar/events`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...eventData, userId })
+                });
+            }
+
+            if (res.ok) {
+                toast.success(eventData.id ? 'Evento actualizado' : 'Evento creado');
+                loadEvents();
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || 'Failed to save');
+            }
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.message || 'Error al guardar evento');
+            throw error;
+        }
+    };
+
+    const handleDeleteEvent = async (eventId: string) => {
+        const userId = localStorage.getItem('currentUserId');
+        if (!userId) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/calendar/events/${eventId}?userId=${userId}`, {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                toast.success('Evento eliminado');
+                loadEvents();
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || 'Failed to delete');
+            }
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.message || 'Error al eliminar evento');
+            throw error;
+        }
+    };
+
+    if (!isConnected) {
+        return (
+            <div className="min-h-screen bg-neo-bg text-neo-text p-4 md:p-8 font-sans">
+                <header className="mb-12 flex items-center justify-between border-b-4 border-neo-border pb-6">
+                    <div className="flex items-center gap-4">
+                        <NeoButton onClick={() => window.location.href = '/'} size="sm" variant="secondary">
+                            ← Back
+                        </NeoButton>
+                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic text-neo-text drop-shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                            Calendar
+                        </h1>
+                    </div>
+                </header>
+
+                <div className="flex flex-col items-center justify-center p-12">
+                    <NeoCard className="text-center max-w-lg border-red-500 border-4">
+                        <h2 className="text-2xl font-black mb-4 text-red-600 uppercase">⚠ Sin Conexión al Calendario</h2>
+                        <p className="mb-4 font-bold">{errorMessage || 'No se pudo conectar con Google Calendar.'}</p>
+                        <p className="mb-6 text-sm text-gray-600">
+                            Si eres un colaborador externo, el administrador debe reconectar la cuenta de la agencia en Configuración.
+                        </p>
+
+                        <a href="/settings" className="inline-block">
+                            <NeoButton variant="secondary">
+                                Ir a Configuración
+                            </NeoButton>
+                        </a>
+
+                        <div className="mt-4">
+                            <NeoButton onClick={loadEvents} size="sm" variant="primary">Reintentar</NeoButton>
+                        </div>
+                    </NeoCard>
+                </div>
+            </div>
+        )
+    }
 
     return (
-        <div className="min-h-screen bg-neo-bg text-neo-text p-8 font-sans">
-            <header className="mb-8 flex justify-between items-center border-b-4 border-neo-border pb-6">
+        <div className="min-h-screen bg-neo-bg text-neo-text p-4 md:p-8 font-sans">
+            <header className="mb-8 flex items-center justify-between border-b-4 border-neo-border pb-6">
                 <div className="flex items-center gap-4">
                     <NeoButton onClick={() => window.location.href = '/'} size="sm" variant="secondary">
                         ← Back
                     </NeoButton>
-                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase text-neo-text">
+                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic text-neo-text drop-shadow-[4px_4px_0px_rgba(0,0,0,1)]">
                         Calendar
                     </h1>
                 </div>
-                <div className="flex gap-4">
-                    <button
-                        onClick={() => setShowErrors(!showErrors)}
-                        className={`text-xs font-bold uppercase underline ${showErrors ? 'text-red-600' : 'text-gray-400'}`}
-                    >
-                        {showErrors ? 'Ocultar Errores' : 'Mostrar Errores'}
-                    </button>
-                    <NeoButton onClick={() => { setSelectedDate(null); setIsComposerOpen(true); setSelectedPost(null); }}>
-                        + New Post
-                    </NeoButton>
-                    <NeoButton
-                        onClick={() => window.location.href = 'http://localhost:3000/google/auth'}
-                        variant="secondary"
-                        size="sm"
-                        className="bg-blue-100"
-                    >
-                        Connect Google
-                    </NeoButton>
-                </div>
+                <NeoButton onClick={loadEvents} size="sm" variant="secondary">
+                    ↻ Refresh
+                </NeoButton>
             </header>
-            <Toaster position="bottom-right" />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Calendar Column - Hidden if Composer is Open */}
-                {!isComposerOpen && !selectedPost && (
-                    <div className="lg:col-span-3">
-                        <NeoCard className="bg-white">
-                            <style jsx global>{`
-                                .fc {
-                                    font-family: inherit;
-                                    --fc-border-color: black;
-                                    --fc-page-bg-color: white;
-                                    --fc-neutral-bg-color: white;
-                                }
-                                .fc-toolbar-title {
-                                    font-weight: 900 !important;
-                                    text-transform: uppercase;
-                                }
-                                .fc-button {
-                                    background-color: white !important;
-                                    border: 2px solid black !important;
-                                    border-radius: 0 !important;
-                                    box-shadow: 4px 4px 0px 0px #D02020 !important; /* Red Shadow */
-                                    font-weight: bold !important;
-                                    text-transform: uppercase !important;
-                                    color: black !important;
-                                    opacity: 1 !important;
-                                }
-                                .fc-button:active {
-                                    transform: translate(2px, 2px);
-                                    box-shadow: 2px 2px 0px 0px #D02020 !important;
-                                }
-                                .fc-daygrid-day {
-                                    border: 2px solid black !important;
-                                }
-                                .fc-day-today {
-                                    background-color: rgba(208, 32, 32, 0.1) !important; /* Red tint */
-                                }
-                                .fc-event {
-                                    border: 2px solid black !important;
-                                    box-shadow: 2px 2px 0px 0px black;
-                                    border-radius: 0 !important;
-                                    font-weight: bold;
-                                    cursor: pointer;
-                                    padding: 2px 4px;
-                                }
-                                @media (max-width: 768px) {
-                                    .fc-toolbar {
-                                        flex-direction: column;
-                                        gap: 1rem;
-                                    }
-                                    .fc-toolbar-title {
-                                        font-size: 1.25rem !important;
-                                    }
-                                }
-                            `}</style>
-                            <FullCalendar
-                                plugins={[dayGridPlugin, interactionPlugin]}
-                                initialView="dayGridMonth"
-                                events={visiblePosts}
-                                dateClick={handleDateClick}
-                                eventClick={handleEventClick}
-                                headerToolbar={{
-                                    left: 'prev,next today',
-                                    center: 'title',
-                                    right: 'dayGridMonth,dayGridWeek'
-                                }}
-                                height="auto"
-                            />
-                        </NeoCard>
-                    </div>
-                )}
+            <NeoCard className="p-0 overflow-hidden bg-white">
+                <div className="p-4" style={{ height: '70vh' }}>
+                    <FullCalendar
+                        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                        initialView="dayGridMonth"
+                        headerToolbar={{
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        }}
+                        events={events}
+                        height="100%"
+                        selectable={true}
+                        dateClick={handleDateClick}
+                        eventClick={handleEventClick}
+                    />
+                </div>
+            </NeoCard>
 
-                {/* Composer / Details Column - Full Width if Active */}
-                {(isComposerOpen || selectedPost) && (
-                    <div className="lg:col-span-3">
-                        {selectedPost ? (
-                            <NeoCard title="Post Details" className="bg-white border-l-8 border-l-neo-orange max-w-4xl mx-auto">
-                                <div className="space-y-4">
-                                    <div>
-                                        <span className="bg-black text-white px-2 py-1 text-xs font-bold uppercase">
-                                            {selectedPost.state}
-                                        </span>
-                                        <span className="ml-2 text-sm font-bold text-gray-500">
-                                            {new Date(selectedPost.publishDate).toLocaleString()}
-                                        </span>
-                                    </div>
-                                    <p className="text-xl font-bold whitespace-pre-wrap border-l-4 border-gray-200 pl-4">
-                                        {selectedPost.content}
-                                    </p>
-
-                                    {selectedPost.media && Array.isArray(selectedPost.media) && selectedPost.media.length > 0 && (
-                                        <div className="grid grid-cols-2 gap-2 mt-4">
-                                            {selectedPost.media.map((m: any, idx: number) => (
-                                                <div key={idx} className="relative aspect-square border-2 border-neo-border shadow-neo-sm">
-                                                    <img
-                                                        src={m.path}
-                                                        alt={`Media ${idx + 1}`}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    <div className="pt-4 border-t-2 border-neo-border">
-                                        <p className="text-xs font-bold uppercase text-gray-400">Integration</p>
-                                        <p className="font-bold">{selectedPost.integration?.name || 'Unknown'}</p>
-                                    </div>
-                                    <div className="flex justify-end mt-4">
-                                        <NeoButton size="sm" variant="secondary" onClick={() => setSelectedPost(null)}>
-                                            Close
-                                        </NeoButton>
-                                    </div>
-                                </div>
-                            </NeoCard>
-                        ) : (
-                            <div className="max-w-6xl mx-auto">
-                                <div className="mb-4">
-                                    <button
-                                        onClick={() => setIsComposerOpen(false)}
-                                        className="text-sm font-bold text-gray-500 hover:text-black underline mb-4 inline-block"
-                                    >
-                                        ← Volver al Calendario
-                                    </button>
-                                </div>
-                                <NeoCard title={selectedDate ? `Nuevo Post para el ${selectedDate}` : "Nuevo Post"} className="bg-white">
-                                    <PostComposer
-                                        onPostCreated={() => {
-                                            fetchPosts();
-                                            setIsComposerOpen(false);
-                                        }}
-                                        initialDate={selectedDate}
-                                    />
-                                </NeoCard>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
+            <CalendarEventModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleSaveEvent}
+                onDelete={handleDeleteEvent}
+                initialData={selectedEvent}
+            />
         </div>
     );
 }
+
+export default withAuth(CalendarPage);

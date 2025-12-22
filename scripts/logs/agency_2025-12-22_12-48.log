@@ -1,0 +1,8 @@
+2025-12-22 12:48:41,513 - 🏢 AGENCIA LOCAL INICIADA
+2025-12-22 12:48:41,514 - ========================
+2025-12-22 12:48:41,514 - 🕵️  SCOUT: Iniciando búsqueda de 'barberia'...
+2025-12-22 12:50:16,734 - ❌ Error procesando item 10: Locator.all: Target page, context or browser has been closed
+2025-12-22 12:50:16,736 - ❌ Error procesando item 11: Locator.all: Target page, context or browser has been closed
+2025-12-22 12:50:16,741 - ❌ Error procesando item 12: Locator.all: Target page, context or browser has been closed
+2025-12-22 12:50:16,743 - ❌ Error procesando item 13: Locator.all: Target page, context or browser has been closed
+2025-12-22 12:50:17,078 - ✅ SCOUT: Encontró 10 candidatos. Iniciando enriquecimiento...

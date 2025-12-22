@@ -1,0 +1,17 @@
+2025-12-22 16:27:20,605 - INFO - ✅ LLM Provider available: gemini
+2025-12-22 16:27:20,605 - INFO - ✅ LLM Provider available: openrouter
+2025-12-22 16:27:20,606 - INFO - ✅ LLM Provider available: huggingface
+2025-12-22 16:27:22,623 - INFO - ✅ LLM Provider available: ollama
+2025-12-22 16:27:22,625 - INFO - ==================================================
+2025-12-22 16:27:22,627 - INFO - 🚀 Starting Analysis: 'restaurante' in 'Buenos Aires'
+2025-12-22 16:27:22,631 - INFO - ==================================================
+2025-12-22 16:27:22,631 - INFO - 🔍 Searching: 'restaurante en Buenos Aires' (limit: 1)
+2025-12-22 16:27:23,231 - INFO - ✅ Found 1 results
+2025-12-22 16:27:23,232 - INFO - 🌐 Scraping: http://doroitalianbar.com/?utm_source=Google%20My%20Business&utm_medium=Google%20My%20Business&utm_campaign=clic%20en%20sitio
+2025-12-22 16:27:26,839 - INFO - 🤖 Trying gemini...
+2025-12-22 16:27:36,091 - INFO - ✅ Analysis complete via gemini
+2025-12-22 16:27:36,093 - INFO - 🔸 DRY RUN - Skipping sync
+2025-12-22 16:27:36,093 - INFO - ==================================================
+2025-12-22 16:27:36,093 - INFO - ✅ Complete: 1 leads enriched
+2025-12-22 16:27:36,094 - INFO -    🔥 HOT: 0 | 🟡 WARM: 1 | 🔵 COLD: 0
+2025-12-22 16:27:36,094 - INFO - ==================================================

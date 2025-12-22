@@ -18,12 +18,21 @@ const ReportTab: React.FC<ReportTabProps> = ({ language, clientData, competitors
     const t = TRANSLATIONS[language].reportTab;
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         setIsGenerating(true);
         const element = document.getElementById('report-content');
 
-        // Use html2pdf if available (loaded via CDN)
-        if (typeof (window as any).html2pdf === 'function' && element) {
+        if (!element) {
+            console.error("Report content element not found");
+            setIsGenerating(false);
+            return;
+        }
+
+        try {
+            // Dynamically import html2pdf only when needed
+            const html2pdfModule = await import('html2pdf.js');
+            const html2pdf = html2pdfModule.default;
+
             const opt = {
                 margin: 0,
                 filename: `Audit_${clientData?.name}_${new Date().toISOString().slice(0, 10)}.pdf`,
@@ -32,15 +41,12 @@ const ReportTab: React.FC<ReportTabProps> = ({ language, clientData, competitors
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            (window as any).html2pdf().set(opt).from(element).save().then(() => {
-                setIsGenerating(false);
-            }).catch((err: any) => {
-                console.error("PDF generation error:", err);
-                setIsGenerating(false);
-            });
-        } else {
-            console.warn("html2pdf not found, using print fallback");
+            await html2pdf().set(opt).from(element).save();
+        } catch (err) {
+            console.error("PDF generation error:", err);
+            // Fallback to print
             window.print();
+        } finally {
             setIsGenerating(false);
         }
     };

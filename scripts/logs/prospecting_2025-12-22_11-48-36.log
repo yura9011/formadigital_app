@@ -1,0 +1,56 @@
+2025-12-22 11:48:36,616 - INFO - ==================================================
+2025-12-22 11:48:36,617 - INFO - 🚀 INICIANDO DEEP DISCOVERY CON ENRIQUECIMIENTO WEB
+2025-12-22 11:48:36,617 - INFO - ==================================================
+2025-12-22 11:48:38,084 - INFO - 🔎 Iniciando: 'restaurant' en 'Palermo, Buenos Aires'
+2025-12-22 11:48:43,076 - INFO - 📋 Encontrados 21. Procesando 5...
+2025-12-22 11:48:43,087 - INFO - 👉 Click en resultado 1/5
+2025-12-22 11:48:46,543 - WARNING - ⚠️ Salteando extracción LLM (Ollama no disponible o error): Locator.inner_text: Error: strict mode violation: locator("div[role=\"main\"]") resolved to 2 elements:
+    1) <div role="main" jslog="25180;mutable:true;" class="m6QErb WNBkOb XiKgde ">…</div> aka get_by_role("main").filter(has_text="PrecioClasificaciónHoras")
+    2) <div role="main" aria-label="DHAM" class="m6QErb WNBkOb XiKgde " jslog="24393;mutable:true;metadata:WyIwYWhVS0V3aVBqdEd4dU5HUkF4V2lLN2tHSGQ0NEI2VVE4QmNJQWlnQSJd">…</div> aka get_by_role("main", name="DHAM")
+
+Call log:
+  - waiting for locator("div[role=\"main\"]")
+
+2025-12-22 11:48:46,597 - INFO - 📍 Lead: DHAM
+2025-12-22 11:48:46,597 - INFO - 🌐 Enriqueciendo: Visitando http://www.somosdham.com/...
+2025-12-22 11:48:47,725 - WARNING -    ⚠️ Error buscando emails: 'Locator' object has no attribute 'all_attributes'
+2025-12-22 11:48:47,815 - INFO - 👉 Click en resultado 2/5
+2025-12-22 11:48:50,257 - WARNING - ⚠️ Salteando extracción LLM (Ollama no disponible o error): Locator.inner_text: Error: strict mode violation: locator("div[role=\"main\"]") resolved to 2 elements:
+    1) <div role="main" jslog="25180;mutable:true;" class="m6QErb WNBkOb XiKgde ">…</div> aka get_by_role("main").filter(has_text="PrecioClasificaciónHoras")
+    2) <div role="main" aria-label="Vitácora" class="m6QErb WNBkOb XiKgde " jslog="24393;mutable:true;metadata:WyIwYWhVS0V3ajRqZVd2dU5HUkF4VXpJYmtHSGEwRk4zd1E4QmNJUENnQiJd">…</div> aka get_by_role("main", name="Vitácora")
+
+Call log:
+  - waiting for locator("div[role=\"main\"]")
+
+2025-12-22 11:48:50,258 - INFO - 📍 Lead: Vitácora
+2025-12-22 11:48:50,300 - INFO - 👉 Click en resultado 3/5
+2025-12-22 11:48:53,037 - WARNING - ⚠️ Salteando extracción LLM (Ollama no disponible o error): Locator.inner_text: Error: strict mode violation: locator("div[role=\"main\"]") resolved to 2 elements:
+    1) <div role="main" jslog="25180;mutable:true;" class="m6QErb WNBkOb XiKgde ">…</div> aka get_by_role("main").filter(has_text="PrecioClasificaciónHoras")
+    2) <div role="main" aria-label="Vitácora" class="m6QErb WNBkOb XiKgde " jslog="24393;mutable:true;metadata:WyIwYWhVS0V3ajRqZVd2dU5HUkF4VXpJYmtHSGEwRk4zd1E4QmNJUENnQiJd">…</div> aka get_by_role("main", name="Vitácora")
+
+Call log:
+  - waiting for locator("div[role=\"main\"]")
+
+2025-12-22 11:48:53,038 - WARNING - ⚠️ Duplicado detectado: Vitácora
+2025-12-22 11:48:53,093 - INFO - 👉 Click en resultado 4/5
+2025-12-22 11:48:55,773 - WARNING - ⚠️ Salteando extracción LLM (Ollama no disponible o error): Locator.inner_text: Error: strict mode violation: locator("div[role=\"main\"]") resolved to 2 elements:
+    1) <div role="main" jslog="25180;mutable:true;" class="m6QErb WNBkOb XiKgde ">…</div> aka get_by_role("main").filter(has_text="PrecioClasificaciónHoras")
+    2) <div role="main" aria-label="Vitácora" class="m6QErb WNBkOb XiKgde " jslog="24393;mutable:true;metadata:WyIwYWhVS0V3ajRqZVd2dU5HUkF4VXpJYmtHSGEwRk4zd1E4QmNJUENnQiJd">…</div> aka get_by_role("main", name="Vitácora")
+
+Call log:
+  - waiting for locator("div[role=\"main\"]")
+
+2025-12-22 11:48:55,774 - WARNING - ⚠️ Duplicado detectado: Vitácora
+2025-12-22 11:48:55,826 - INFO - 👉 Click en resultado 5/5
+2025-12-22 11:48:58,469 - WARNING - ⚠️ Salteando extracción LLM (Ollama no disponible o error): Locator.inner_text: Error: strict mode violation: locator("div[role=\"main\"]") resolved to 2 elements:
+    1) <div role="main" jslog="25180;mutable:true;" class="m6QErb WNBkOb XiKgde ">…</div> aka get_by_role("main").filter(has_text="PrecioClasificaciónHoras")
+    2) <div role="main" aria-label="Vitácora" class="m6QErb WNBkOb XiKgde " jslog="24393;mutable:true;metadata:WyIwYWhVS0V3ajRqZVd2dU5HUkF4VXpJYmtHSGEwRk4zd1E4QmNJUENnQiJd">…</div> aka get_by_role("main", name="Vitácora")
+
+Call log:
+  - waiting for locator("div[role=\"main\"]")
+
+2025-12-22 11:48:58,527 - WARNING - ⚠️ Duplicado detectado: Vitácora
+2025-12-22 11:48:59,219 - INFO - ✨ Reporte generado: prospecting_results\report_20251222_1148.html
+2025-12-22 11:48:59,220 - INFO - ==================================================
+2025-12-22 11:48:59,220 - INFO - ✅ PROCESO FINALIZADO
+2025-12-22 11:48:59,221 - INFO - 📂 Ver resultados en: D:\tareas\exp003 - postix\forma-digital-app\scripts\prospecting_results

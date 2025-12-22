@@ -1,69 +1,104 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { NeoCard } from '../../components/neo/NeoCard';
+import { NeoButton } from '../../components/neo/NeoButton';
+import { NeoInput } from '../../components/neo/NeoInput';
+import toast from 'react-hot-toast';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        const res = await signIn('credentials', {
-            email,
-            password,
-            redirect: false,
-        });
+        setIsLoading(true);
 
-        if (res?.error) {
-            setError('Invalid email or password');
-        } else {
-            router.push('/calendar');
+        try {
+            const res = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (!res.ok) {
+                const error = await res.json().catch(() => ({ message: 'Error de autenticación' }));
+                throw new Error(error.message || 'Credenciales inválidas');
+            }
+
+            const data = await res.json();
+
+            // Store user session in localStorage
+            localStorage.setItem('currentUserId', data.user.id);
+            localStorage.setItem('currentUserName', data.user.name || data.user.email);
+            localStorage.setItem('currentUserEmail', data.user.email);
+
+            toast.success(`¡Bienvenido, ${data.user.name || data.user.email}!`);
+
+            // Redirect to home
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Login failed:', error);
+            toast.error(error instanceof Error ? error.message : 'Error al iniciar sesión');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-            <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-700">
-                <h1 className="text-2xl font-bold mb-6 text-center text-blue-500">Forma Digital Login</h1>
+        <div className="min-h-screen bg-neo-bg flex items-center justify-center p-4">
+            <div className="w-full max-w-md">
+                <div className="text-center mb-8">
+                    <h1 className="text-4xl font-black tracking-tighter uppercase italic text-neo-text drop-shadow-[4px_4px_0px_rgba(0,0,0,1)] mb-2">
+                        Forma Digital
+                    </h1>
+                    <p className="text-lg font-bold text-gray-600 uppercase tracking-widest">
+                        Iniciar Sesión
+                    </p>
+                </div>
 
-                {error && (
-                    <div className="bg-red-900 text-red-200 p-3 rounded mb-4 text-sm">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
-                        <input
+                <NeoCard className="p-8">
+                    <form onSubmit={handleLogin} className="space-y-6">
+                        <NeoInput
+                            label="Email"
                             type="email"
-                            className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="tu@email.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
                         />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
-                        <input
+
+                        <NeoInput
+                            label="Contraseña"
                             type="password"
-                            className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
+
+                        <NeoButton
+                            type="submit"
+                            className="w-full bg-neo-blue text-white"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Ingresando...' : 'Ingresar'}
+                        </NeoButton>
+                    </form>
+
+                    <div className="mt-6 pt-6 border-t-2 border-gray-200 text-center text-sm text-gray-500">
+                        <p>Usuarios disponibles:</p>
+                        <p className="font-mono mt-2">
+                            lucas@formadigital.com<br />
+                            nahuel@formadigital.com<br />
+                            lucho@formadigital.com<br />
+                            (pass: 123456)
+                        </p>
                     </div>
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-semibold transition-colors"
-                    >
-                        Sign In
-                    </button>
-                </form>
+                </NeoCard>
             </div>
         </div>
     );

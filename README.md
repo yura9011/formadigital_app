@@ -1,62 +1,158 @@
 # Forma Digital App
 
-A social media scheduling application built with **NestJS** (Backend) and **Next.js** (Frontend), designed for *Forma Digital*.
+A social media scheduling and **Local Business Intelligence** platform built with **NestJS** (Backend), **Next.js** (Frontend), and **Python Agent V2** (AI Analysis).
+
+## 🚀 Key Features
+
+| Feature | Description |
+|---------|-------------|
+| 📅 **Social Scheduling** | Multi-platform post scheduling (Instagram, Facebook) |
+| 🗺️ **GMB Intelligence** | Local competitor analysis via Map + SerpApi |
+| 🤖 **AI Audit** | Blue Ocean strategy audits powered by Gemini/OpenRouter |
+| 📋 **Leads CRM** | Automatic lead capture from audits with tier scoring |
+| 📊 **PDF Reports** | Exportable audit reports with SWOT, Action Plans |
+
+---
+
+## 🏗 Architecture
+
+```
+forma-digital-app/
+├── apps/
+│   ├── backend/        # NestJS API (Port 3001)
+│   └── frontend/       # Next.js 16 (Port 3000)
+├── scripts/
+│   └── agent_v2/       # Python AI Agent (LLM, Scraper, Sync)
+└── .github/agents/     # AI Persona Definitions
+```
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Backend | NestJS 11, Prisma, PostgreSQL, BullMQ |
+| Frontend | Next.js 16, React 19, TailwindCSS v4 |
+| AI Agent | Python 3.11+, Gemini, OpenRouter, Ollama |
+| Design | Neo-Brutalist (Bauhaus) |
+
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Node.js (v18+)
-- Docker Desktop (for PostgreSQL & Redis)
+- Python 3.11+
+- Docker Desktop (PostgreSQL & Redis)
 
 ### Installation
 
-1.  **Clone the repository**
-2.  **Install dependencies** (Root)
-    ```bash
-    npm install
-    ```
-3.  **Start Infrastructure**
-    ```bash
-    docker compose up -d
-    ```
-4.  **Setup Database**
-    ```bash
-    cd apps/backend
-    npx prisma db push
-    npx prisma db seed
-    ```
+```bash
+# 1. Clone & install
+npm install
+
+# 2. Start infrastructure
+docker compose up -d
+
+# 3. Setup database
+cd apps/backend
+npx prisma db push
+npx prisma db seed
+
+# 4. Setup Python agent
+cd scripts/agent_v2
+pip install -r requirements.txt
+cp .env.example .env  # Add your API keys
+```
 
 ### Running the App
 
-**Backend (Port 3000)**
 ```bash
-cd apps/backend
-npm run start:dev
+# Backend (Port 3001)
+cd apps/backend && npm run start:dev
+
+# Frontend (Port 3000)
+cd apps/frontend && npm run dev
 ```
 
-**Frontend (Port 3001)**
-```bash
-cd apps/frontend
-npm run dev -- -p 3001
+---
+
+## 🗺️ GMB Intelligence Module
+
+Navigate to `/gmb` to access:
+
+1. **Map Tab**: Search competitors by keyword + location
+2. **Analysis Tab**: View competitor metrics and tier classification
+3. **Audit Tab**: Run AI-powered Blue Ocean audit
+4. **Report Tab**: Generate PDF with SWOT, Gap Analysis, Action Plan
+
+### AI Audit Flow
+
+```mermaid
+flowchart LR
+    A[Select Client] --> B[Run Audit]
+    B --> C[Python Agent]
+    C --> D[Gemini/OpenRouter LLM]
+    D --> E[Save to DB]
+    E --> F[View in /gmb/leads]
 ```
 
-## 🏗 Architecture
+---
 
--   **Monorepo**: Managed with npm workspaces.
--   **Backend**: NestJS, Prisma (Postgres), BullMQ (Redis).
--   **Frontend**: Next.js 14 (App Router), TailwindCSS, NextAuth.js.
--   **Authentication**: Credentials (Email/Password).
--   **Integrations**: Modular provider system (supports **Instagram Graph API** and **Facebook Graph API**).
-    -   **Facebook App Permissions Required**:
-        -   `pages_manage_posts` (Create posts)
-        -   `pages_read_engagement` (Read profile/posts)
-        -   `pages_show_list` (List pages)
-        -   `read_insights` (Analytics)
-        -   `instagram_basic` (Instagram Profile)
-        -   `instagram_content_publish` (Instagram Posting)
-        -   `instagram_manage_insights` (Instagram Analytics)
+## 🤖 Python Agent V2
 
-## 🔑 Default Credentials
+Location: `scripts/agent_v2/`
 
--   **Admin User**: `admin@formadigital.com`
--   **Password**: `admin123`
+### CLI Usage
+
+```bash
+# Search mode (find businesses)
+python main.py --mode search --query "Kiosco" --location "Buenos Aires" --limit 10
+
+# Audit mode (analyze specific business)
+python main.py --mode audit --input payload.json
+```
+
+### Environment Variables
+
+```env
+GEMINI_API_KEY=your_key
+OPENROUTER_API_KEY=your_key
+SERPAPI_API_KEY=your_key
+BACKEND_URL=http://localhost:3001
+```
+
+---
+
+## 📋 Leads CRM
+
+Navigate to `/gmb/leads` to:
+- View all saved leads/clients
+- Filter by type (LEAD / CLIENT)
+- View last audit for each client
+- Create projects from leads
+
+---
+
+## 🧪 Testing
+
+```bash
+# Backend (Jest)
+cd apps/backend && npm test
+
+# Python Agent (pytest)
+cd scripts/agent_v2 && python -m pytest tests/ -v
+```
+
+---
+
+## 📁 Agent Personas
+
+AI behavior is defined in `.github/agents/`:
+
+| Agent | Role |
+|-------|------|
+| `api-agent.md` | Backend NestJS specialist |
+| `frontend-agent.md` | Next.js + Neo-Brutalist design |
+| `strategy-agent.md` | Blue Ocean business intelligence |
+| `test-agent.md` | Testing & QA |
+| `docs-agent.md` | Documentation |

@@ -32,3 +32,10 @@ export class CreateTemplateDto {
 export class ReorderPhaseDto {
     direction: 'UP' | 'DOWN';
 }
+
+export class CreateClientDto {
+    name: string;
+    address: string;
+    phone?: string;
+    category?: string;
+}

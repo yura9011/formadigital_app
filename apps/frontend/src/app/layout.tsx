@@ -28,9 +28,39 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Toaster position="top-right" />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            className: '',
+            style: {
+              border: '3px solid black',
+              borderRadius: '0px',
+              boxShadow: '4px 4px 0px black',
+              color: '#000',
+              background: '#fff',
+              fontWeight: 'bold',
+            },
+            success: {
+              style: {
+                background: '#dcfce7', // green-100
+              },
+              iconTheme: {
+                primary: 'black',
+                secondary: '#4ade80',
+              },
+            },
+            error: {
+              style: {
+                background: '#fee2e2', // red-100
+              },
+              iconTheme: {
+                primary: 'black',
+                secondary: '#f87171',
+              }
+            }
+          }}
+        />
         {children}
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossOrigin="anonymous" referrerPolicy="no-referrer"></script>
       </body>
     </html>
   );

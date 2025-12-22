@@ -1,0 +1,24 @@
+2025-12-22 13:00:15,895 - 🏢 AGENCIA LOCAL INICIADA
+2025-12-22 13:00:15,896 - ========================
+2025-12-22 13:00:15,896 - 🕵️  SCOUT: Iniciando búsqueda de 'barberia'...
+2025-12-22 13:00:21,835 - ❌ Error procesando item 0: Locator.click: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("[role=\"feed\"] > div > div > a").first
+    - locator resolved to <a class="hfpxzc" aria-label="Barberia Only Barbers - Recoleta" jsaction="pane.wfvdle9;focus:pane.wfvdle9;blur:pane.wfvdle9;auxclick:pane.wfvdle9;keydown:pane.wfvdle9;clickmod:pane.wfvdle9" jslog="18538;track:click,contextmenu;mutable:true;metadata:WyIwYWhVS0V3aU5sYTJ3eU5HUkF4VkpITGtHSFJud0puTVFrUm9JQ3lnRyIsbnVsbCxudWxsLFtudWxsLG51bGwsW1sxNDFdXV1d" href="https://www.google.com/maps/place/Barberia+Only+Barbers+-+Recoleta/data=!4m7!3m6!1s0x95bccb244dfd23ef:0xf8f97f2bf639a69b!8m2!3d-34.594606!4d-58.…></a>
+  - attempting click action
+    - waiting for element to be visible, enabled and stable
+
+2025-12-22 13:00:21,839 - ❌ Error procesando item 1: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:21,843 - ❌ Error procesando item 2: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:21,849 - ❌ Error procesando item 3: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:21,854 - ❌ Error procesando item 4: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:21,859 - ❌ Error procesando item 5: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:21,864 - ❌ Error procesando item 6: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:21,867 - ❌ Error procesando item 7: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:21,871 - ❌ Error procesando item 8: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:21,875 - ❌ Error procesando item 9: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:21,880 - ❌ Error procesando item 10: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:21,886 - ❌ Error procesando item 11: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:21,891 - ❌ Error procesando item 12: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:21,895 - ❌ Error procesando item 13: Locator.all: Target page, context or browser has been closed
+2025-12-22 13:00:22,434 - ❌ No se encontraron leads.

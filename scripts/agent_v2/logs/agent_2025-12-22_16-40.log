@@ -1,0 +1,18 @@
+2025-12-22 16:40:48,714 - INFO - ✅ LLM Provider available: gemini
+2025-12-22 16:40:48,715 - INFO - ✅ LLM Provider available: openrouter
+2025-12-22 16:40:48,715 - INFO - ✅ LLM Provider available: huggingface
+2025-12-22 16:40:50,734 - INFO - ✅ LLM Provider available: ollama
+2025-12-22 16:40:50,735 - INFO - ==================================================
+2025-12-22 16:40:50,735 - INFO - 🚀 Starting Analysis: 'restaurante' in 'Palermo, Buenos Aires'
+2025-12-22 16:40:50,736 - INFO - ==================================================
+2025-12-22 16:40:50,736 - INFO - 🔍 Searching: 'restaurante en Palermo, Buenos Aires' (limit: 1)
+2025-12-22 16:40:54,105 - INFO - ✅ Found 1 results
+2025-12-22 16:40:54,108 - INFO - 🔎 Enriching via Google: 'Hierro Parrilla Palermo Costa Rica 5602, C1414 Cdad. Autónoma de Buenos Aires, Argentina'
+2025-12-22 16:41:01,034 - INFO - 🌐 Scraping: https://hierrocasadefuegos.com/
+2025-12-22 16:41:01,734 - INFO - 🤖 Trying gemini...
+2025-12-22 16:41:06,440 - INFO - ✅ Analysis complete via gemini
+2025-12-22 16:41:06,441 - INFO - 🔸 DRY RUN - Skipping sync
+2025-12-22 16:41:06,441 - INFO - ==================================================
+2025-12-22 16:41:06,441 - INFO - ✅ Complete: 1 leads enriched
+2025-12-22 16:41:06,442 - INFO -    🔥 HOT: 1 | 🟡 WARM: 0 | 🔵 COLD: 0
+2025-12-22 16:41:06,442 - INFO - ==================================================
