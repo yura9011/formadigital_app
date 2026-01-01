@@ -5,7 +5,7 @@ export const TRANSLATIONS = {
     en: {
         title: "GMB Competitor Intel",
         tabs: {
-            map: "Map & Search",
+            search: "Smart Search",
             analysis: "Analysis & Ranking",
             audit: "Client Audit",
             report: "PDF Report",
@@ -52,7 +52,11 @@ export const TRANSLATIONS = {
                 reviews: "Reviews",
                 score: "Weighted Score",
                 viewMaps: "View on Google Maps"
-            }
+            },
+            noResults: "No competitors found in the selected radius.",
+            errorSearch: "Error searching competitors. Check your connection.",
+            found: "Found",
+            competitors: "competitors"
         },
         analysisTab: {
             exportBtn: "Export to CSV",
@@ -97,7 +101,7 @@ export const TRANSLATIONS = {
     es: {
         title: "Intel Competitiva GMB",
         tabs: {
-            map: "Mapa y Búsqueda",
+            search: "Búsqueda Inteligente",
             analysis: "Análisis y Clasificación",
             audit: "Auditoría Cliente",
             report: "Reporte PDF",

@@ -1,6 +1,12 @@
 
 export type Language = 'en' | 'es';
 
+// Hours for a single day (from Harv3st)
+export interface DayHours {
+    day: string;
+    hours: string;
+}
+
 export interface Business {
     id: string;
     name: string;
@@ -17,6 +23,16 @@ export interface Business {
     latitude: number;
     longitude: number;
     weightedScore?: number;
+    
+    // Extended fields from Harv3st
+    placeId?: string;
+    photoCount?: number | null;
+    hours?: DayHours[] | null;
+    isOpenNow?: boolean | null;
+    attributes?: string[] | null;
+    priceLevel?: number | null;
+    harvestScore?: number;
+    capturedAt?: number;
 }
 
 export type ClientType = 'CLIENT' | 'LEAD' | 'COMPETITOR';

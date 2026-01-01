@@ -62,6 +62,9 @@ async function main() {
         // 3. Launch Servers
         console.log(`${yellow}[3/3] Launching Servers...${reset}`);
 
+        // Launch Harv3st (Python scraper)
+        exec('start "Harv3st Server (HOST MODE)" cmd /k "cd ..\\map-scraper-dashboard && python manager.py server"');
+
         // Launch Backend
         exec('start "Backend Server (HOST MODE)" cmd /k "cd apps\\backend && npm run start:dev"');
 
@@ -79,9 +82,14 @@ ${reset}`);
         console.log(`\n${bold}Router Settings:${reset}`);
         console.log(`1. Forward Port ${cyan}3000${reset} -> Your Local IP (${cyan}192.168.0.3${reset})`);
         console.log(`2. Forward Port ${cyan}3001${reset} -> Your Local IP (${cyan}192.168.0.3${reset})`);
+        console.log(`3. Forward Port ${cyan}5050${reset} -> Your Local IP (${cyan}192.168.0.3${reset}) [Harv3st]`);
 
         console.log(`\n${bold}Share this Link:${reset}`);
         console.log(`   ${green}http://${publicIp}:3001${reset}`);
+        console.log(`\n${bold}Services:${reset}`);
+        console.log(`   Frontend: http://${publicIp}:3001`);
+        console.log(`   Backend:  http://${publicIp}:3000`);
+        console.log(`   Harv3st:  http://${publicIp}:5050`);
         console.log(`\n(If it doesn't work for them, check your Windows Firewall and Router)`);
 
     } catch (error) {

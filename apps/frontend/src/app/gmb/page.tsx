@@ -6,11 +6,12 @@ import { Business, Language, AuditResult, SearchParams } from '@/components/gmb/
 import { TabLoadingSkeleton } from '@/components/neo/TabLoadingSkeleton';
 import AgentAnalysisButton from '@/components/gmb/AgentAnalysisButton';
 import ApiKeySettings from '@/components/gmb/ApiKeySettings';
+import { Harv3stConnectionStatus } from '@/services/harv3st';
 
 // Dynamic imports for heavy components - only load when tab is active
-const MapTab = dynamic(() => import('@/components/gmb/MapTab'), {
+const SearchTab = dynamic(() => import('@/components/gmb/SearchTab'), {
     ssr: false,
-    loading: () => <TabLoadingSkeleton label="Mapa" />
+    loading: () => <TabLoadingSkeleton label="Búsqueda" />
 });
 
 const AnalysisTab = dynamic(() => import('@/components/gmb/AnalysisTab'), {
@@ -28,17 +29,17 @@ const ReportTab = dynamic(() => import('@/components/gmb/ReportTab'), {
     loading: () => <TabLoadingSkeleton label="Reporte" />
 });
 
-type TabType = 'map' | 'analysis' | 'audit' | 'report';
+type TabType = 'search' | 'analysis' | 'audit' | 'report';
 
 const STEPS: { id: TabType; label: string; icon: string }[] = [
-    { id: 'map', label: 'Buscar', icon: '🗺️' },
+    { id: 'search', label: 'Buscar', icon: '🔍' },
     { id: 'analysis', label: 'Analizar', icon: '📊' },
-    { id: 'audit', label: 'Auditar', icon: '🔍' },
+    { id: 'audit', label: 'Auditar', icon: '🎯' },
     { id: 'report', label: 'Reporte', icon: '📄' }
 ];
 
 export default function GmbPage() {
-    const [activeTab, setActiveTab] = useState<TabType>('map');
+    const [activeTab, setActiveTab] = useState<TabType>('search');
     const language: Language = 'es';
 
     const [searchParams, setSearchParams] = useState<SearchParams>({
@@ -51,6 +52,9 @@ export default function GmbPage() {
     const [businessData, setBusinessData] = useState<Business[]>([]);
     const [client, setClient] = useState<Business | undefined>(undefined);
     const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
+
+    // Harv3st state
+    const [harv3stStatus, setHarv3stStatus] = useState<Harv3stConnectionStatus>('checking');
 
     // New state for API Keys
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -70,7 +74,7 @@ export default function GmbPage() {
 
     const isTabEnabled = useCallback((tab: TabType): boolean => {
         switch (tab) {
-            case 'map': return true;
+            case 'search': return true;
             case 'analysis': return tabState.hasSearchData;
             case 'audit': return tabState.hasSearchData && tabState.hasClient;
             case 'report': return tabState.hasSearchData && tabState.hasClient && tabState.hasAudit;
@@ -80,45 +84,24 @@ export default function GmbPage() {
     const getTabHint = (tab: TabType): string | null => {
         if (isTabEnabled(tab)) return null;
         switch (tab) {
-            case 'analysis': return 'Primero buscá competidores en el mapa';
+            case 'analysis': return 'Primero buscá y seleccioná negocios';
             case 'audit': return 'Primero seleccioná un negocio como cliente';
             case 'report': return 'Primero ejecutá la auditoría';
             default: return null;
         }
     };
 
+    // Handle transfer from Search to Analysis
+    const handleTransferToAnalysis = (businesses: Business[]) => {
+        if (businesses.length > 0) {
+            setBusinessData(businesses);
+            setClient(businesses[0]);
+            setBusinessData(prev => prev.map((b, i) => ({ ...b, isClient: i === 0 })));
+            setActiveTab('analysis');
+        }
+    };
+
     const currentStepIndex = STEPS.findIndex(s => s.id === activeTab);
-
-    const handleSearchComplete = (results: Business[]) => {
-        if (results.length === 0) {
-            setBusinessData([]);
-            setClient(undefined);
-            setAuditResult(null);
-            return;
-        }
-
-        const foundClient = results.find(b => b.isClient) || results[0];
-        const formattedResults = results.map(b => ({
-            ...b,
-            isClient: b.id === foundClient.id
-        }));
-
-        setBusinessData(formattedResults);
-        setClient(foundClient);
-        setAuditResult(null);
-    };
-
-    const handleSetClient = (selectedBusiness: Business | undefined) => {
-        if (!selectedBusiness) {
-            setClient(undefined);
-            return;
-        }
-        setClient(selectedBusiness);
-        setBusinessData(prevData => prevData.map(b => ({
-            ...b,
-            isClient: b.id === selectedBusiness.id
-        })));
-    };
 
     const handleTabClick = (tab: TabType) => {
         if (isTabEnabled(tab)) {
@@ -329,13 +312,12 @@ export default function GmbPage() {
 
             <main className="flex-1 w-full mx-auto">
                 <div className="h-full">
-                    {activeTab === 'map' && (
-                        <MapTab
+                    {activeTab === 'search' && (
+                        <SearchTab
                             language={language}
-                            onSearchComplete={handleSearchComplete}
-                            currentData={businessData}
-                            onSetClient={handleSetClient}
-                            onSwitchToAudit={() => setActiveTab('audit')}
+                            harv3stStatus={harv3stStatus}
+                            setHarv3stStatus={setHarv3stStatus}
+                            onTransferToAnalysis={handleTransferToAnalysis}
                             searchParams={searchParams}
                             setSearchParams={setSearchParams}
                         />
