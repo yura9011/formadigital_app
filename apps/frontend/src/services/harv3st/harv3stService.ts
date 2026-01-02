@@ -156,6 +156,16 @@ export class Harv3stService {
     }
     return response.blob();
   }
+
+  async clearAllData(): Promise<{ status: string; message: string }> {
+    const response = await fetch(`${this.config.baseUrl}/api/data/clear`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to clear data: ${response.statusText}`);
+    }
+    return response.json();
+  }
 }
 
 export const harv3stService = new Harv3stService();

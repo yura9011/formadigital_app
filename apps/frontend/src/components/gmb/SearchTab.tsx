@@ -125,10 +125,10 @@ const SearchTab: React.FC<SearchTabProps> = ({
 }) => {
   const t = TRANSLATIONS[language];
 
-  // Data sources state
+  // Data sources state - Radar disabled by default to avoid backend dependency
   const [dataSources, setDataSources] = useState<DataSourceConfig>({
     harv3st: { enabled: true, status: harv3stStatus },
-    radar: { enabled: true, hasApiKey: !!process.env.NEXT_PUBLIC_RADAR_PUBLISHABLE_KEY },
+    radar: { enabled: false, hasApiKey: !!process.env.NEXT_PUBLIC_RADAR_PUBLISHABLE_KEY },
   });
 
   // Search state
@@ -252,9 +252,11 @@ const SearchTab: React.FC<SearchTabProps> = ({
         promises.push(
           harv3stService.triggerSearch(query)
             .then(async () => {
-              // Wait for results
-              await new Promise(resolve => setTimeout(resolve, 3000));
+              // Wait for scraping to complete (Harv3st can take 10-30 seconds)
+              await new Promise(resolve => setTimeout(resolve, 15000));
               const data = await harv3stService.getScoredData();
+              console.log(`[Harv3st] Total data received: ${data.length}`);
+              // For now, use all data - user can clear manually
               harv3stResults = scoreAllLeads(data);
               setSearchProgress(prev => ({ ...prev, harv3st: 'done' }));
             })
@@ -285,17 +287,28 @@ const SearchTab: React.FC<SearchTabProps> = ({
 
       await Promise.all(promises);
 
-      // Deduplicate and merge results
-      const unified = deduplicateResults(harv3stResults, radarResults);
-      const scored = scoreAllLeads(unified);
-      const scoredWithSource = scored.map((lead, i) => ({
+      // Deduplicate and merge NEW results
+      const newResults = deduplicateResults(harv3stResults, radarResults);
+      const scoredNew = scoreAllLeads(newResults);
+      const newWithSource = scoredNew.map((lead, i) => ({
         ...lead,
-        source: unified[i]?.source || 'harv3st',
+        source: newResults[i]?.source || 'harv3st',
       })) as UnifiedLead[];
-      setUnifiedLeads(scoredWithSource);
-      cacheService.cacheLeadsForSession(scored);
 
-      toast.success(`${unified.length} ${t.resultsCount}`, {
+      // Merge with existing results (deduplicate by placeId)
+      setUnifiedLeads(prev => {
+        const existingMap = new Map(prev.map(l => [l.placeId, l]));
+        // Add new results, overwriting duplicates with newer data
+        newWithSource.forEach(lead => {
+          existingMap.set(lead.placeId, lead);
+        });
+        const merged = Array.from(existingMap.values());
+        cacheService.cacheLeadsForSession(merged);
+        return merged;
+      });
+
+      const newCount = newWithSource.length;
+      toast.success(`+${newCount} ${language === 'es' ? 'nuevos resultados' : 'new results'}`, {
         style: { borderRadius: '0px', border: '2px solid black', boxShadow: '4px 4px 0 #000' },
       });
     } catch (e) {
@@ -375,6 +388,28 @@ const SearchTab: React.FC<SearchTabProps> = ({
       setError(`Failed to load data: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
   }, []);
+
+  // Clear all results and cache (including Harv3st server data)
+  const handleClearAll = async () => {
+    try {
+      // Clear local state
+      setUnifiedLeads([]);
+      setSelectedLeadIds(new Set());
+      cacheService.clearSessionCache();
+      
+      // Clear Harv3st server data if connected
+      if (dataSources.harv3st.status === 'connected') {
+        await harv3stService.clearAllData();
+      }
+      
+      toast.success(language === 'es' ? 'Todos los datos limpiados' : 'All data cleared', {
+        style: { borderRadius: '0px', border: '2px solid black', boxShadow: '4px 4px 0 #000' },
+      });
+    } catch (e) {
+      console.error('Error clearing data:', e);
+      toast.error(language === 'es' ? 'Error al limpiar datos del servidor' : 'Error clearing server data');
+    }
+  };
 
   // Filter and sort
   const getFilteredAndSortedLeads = useCallback(() => {
@@ -520,8 +555,11 @@ const SearchTab: React.FC<SearchTabProps> = ({
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3">
-        <button onClick={loadData} disabled={isSearching || dataSources.harv3st.status === 'offline'} className="px-4 py-2 bg-gray-100 border-2 border-neo-border font-bold uppercase hover:bg-gray-200 transition-colors disabled:opacity-50">
-          {t.refreshData}
+        <button onClick={loadData} disabled={isSearching || dataSources.harv3st.status === 'offline'} className="px-4 py-2 bg-gray-100 border-2 border-neo-border font-bold uppercase hover:bg-gray-200 transition-colors disabled:opacity-50" title={language === 'es' ? 'Cargar todos los datos históricos de Harv3st' : 'Load all historical Harv3st data'}>
+          📥 {language === 'es' ? 'Cargar Histórico' : 'Load History'}
+        </button>
+        <button onClick={handleClearAll} disabled={unifiedLeads.length === 0} className="px-4 py-2 bg-red-100 text-red-700 border-2 border-neo-border font-bold uppercase hover:bg-red-200 transition-colors disabled:opacity-50">
+          🗑️ {language === 'es' ? 'Limpiar Todo' : 'Clear All'}
         </button>
         <button onClick={handleExportAll} disabled={unifiedLeads.length === 0} className="px-4 py-2 bg-gray-100 border-2 border-neo-border font-bold uppercase hover:bg-gray-200 transition-colors disabled:opacity-50">
           {t.exportAll}
