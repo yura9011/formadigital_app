@@ -5,12 +5,16 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { CreateProjectDto, UpdateProjectDto, CreatePhaseDto, UpdatePhaseDto, CreateTemplateDto, ReorderPhaseDto, CreateClientDto } from './dtos';
 import { GmbService } from './gmb.service';
+import { GeminiService, CompetitorSearchParams, AuditParams } from './gemini.service';
 import type { SearchParams, Business } from './types';
 import { ProjectStatus, PhaseStatus } from '@prisma/client';
 
 @Controller('gmb')
 export class GmbController {
-    constructor(private readonly gmbService: GmbService) { }
+    constructor(
+        private readonly gmbService: GmbService,
+        private readonly geminiService: GeminiService,
+    ) { }
 
     @Get('credits')
     async getCredits() {
@@ -225,5 +229,29 @@ export class GmbController {
     @Post('clients/batch')
     async batchUpsertClients(@Body() body: { clients: any[] }) {
         return this.gmbService.batchUpsertClients(body.clients);
+    }
+
+    // =========================================================================
+    // GEMINI AI INTEGRATION
+    // =========================================================================
+
+    /**
+     * Search competitors using Gemini AI
+     * POST /api/gmb/competitors
+     * Interprets colloquial terms and expands search intelligently
+     */
+    @Post('competitors')
+    async searchCompetitorsAI(@Body() params: CompetitorSearchParams) {
+        return this.geminiService.searchCompetitors(params);
+    }
+
+    /**
+     * Perform SEO/GMB audit using Gemini AI
+     * POST /api/gmb/audit/ai
+     * Returns SWOT analysis, keywords, and action plan
+     */
+    @Post('audit/ai')
+    async performAuditAI(@Body() params: AuditParams) {
+        return this.geminiService.performAudit(params);
     }
 }

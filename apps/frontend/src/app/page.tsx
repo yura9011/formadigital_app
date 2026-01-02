@@ -93,6 +93,14 @@ function Home() {
       primary: true
     },
     {
+      title: 'Prospección',
+      description: 'Gestiona leads y automatiza el contacto con potenciales clientes.',
+      icon: '🎯',
+      href: '/prospect',
+      color: 'bg-orange-100',
+      primary: true
+    },
+    {
       title: 'Reseñas',
       description: 'Gestiona y responde las reseñas de Google de tus clientes.',
       icon: '⭐',

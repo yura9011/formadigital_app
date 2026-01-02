@@ -7,7 +7,7 @@ echo ==========================================
 
 echo.
 echo 1. Launching Harv3st (Python) on Port 5050...
-start "Forma Digital - Harv3st" cmd /k "cd ..\map-scraper-dashboard && python manager.py server"
+start "Forma Digital - Harv3st" cmd /k "cd services\harv3st && python manager.py server"
 
 echo.
 echo 2. Launching Backend (NestJS) on Port 3000...
@@ -23,6 +23,5 @@ echo   Servers are starting up!
 echo   Frontend:  http://localhost:3001
 echo   Backend:   http://localhost:3000
 echo   Harv3st:   http://localhost:5050
-echo   Network:   http://192.168.0.3:3001
 echo ==========================================
 pause

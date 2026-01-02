@@ -37,3 +37,14 @@ apps/backend/test-*.js
 apps/backend/*_token.js
 apps/backend/generate_hash.js
 apps/backend/debug_token_status.js
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+*.egg-info/
+
+# Harv3st data (local scraping results)
+services/harv3st/data/

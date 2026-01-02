@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="gradient">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harv3st</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* === THEME: GRADIENT MESH (Active) === */
+            --bg-primary: #1A1A2E;
+            --bg-secondary: #16213E;
+            --bg-card: rgba(22, 33, 62, 0.8);
+            --bg-card-hover: rgba(30, 45, 80, 0.9);
+            --text-primary: #FFFFFF;
+            --text-secondary: #A0AEC0;
+            --text-muted: #718096;
+            --accent-1: #FF6B35;
+            --accent-2: #FF1493;
+            --accent-3: #8B5CF6;
+            --border-color: rgba(139, 92, 246, 0.3);
+            --gradient-primary: linear-gradient(135deg, #FF6B35, #FF1493, #8B5CF6);
+            --gradient-card: linear-gradient(145deg, rgba(255, 107, 53, 0.1), rgba(139, 92, 246, 0.1));
+            --shadow-glow: 0 4px 30px rgba(139, 92, 246, 0.15);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* === TODO: THEME NEON ===
+        [data-theme="neon"] {
+            --bg-primary: #0D0221;
+            --bg-secondary: #150734;
+            --accent-1: #00F0FF;
+            --accent-2: #FF00FF;
+            --gradient-primary: linear-gradient(135deg, #00F0FF, #FF00FF);
+        }
+        */
+
+        /* === TODO: THEME MINIMAL ===
+        [data-theme="minimal"] {
+            --bg-primary: #FAFAFA;
+            --bg-secondary: #FFFFFF;
+            --text-primary: #1A1A1A;
+            --text-secondary: #4A4A4A;
+            --accent-1: #0066FF;
+            --gradient-primary: linear-gradient(135deg, #0066FF, #0052CC);
+        }
+        */
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Grain texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow), var(--shadow-card);
+            border-color: var(--accent-3);
+        }
+
+        .gradient-border {
+            position: relative;
+        }
+
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            padding: 1px;
+            background: var(--gradient-primary);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .stat-value {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-badge {
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+        }
+
+        .score-high {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(255, 20, 147, 0.2));
+            color: #FF6B35;
+            border: 1px solid rgba(255, 107, 53, 0.3);
+        }
+
+        .score-medium {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(255, 20, 147, 0.2));
+            color: #8B5CF6;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .score-low {
+            background: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 10px;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .input-field {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px 14px;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-3);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .data-table {
+            width: 100%;
+        }
+
+        .data-table thead {
+            background: var(--bg-secondary);
+        }
+
+        .data-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .expand-row {
+            display: none;
+        }
+
+        .expand-row.active {
+            display: table-row;
+        }
+
+        /* Progress Ring */
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+        }
+
+        .theme-selector {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        @keyframes pulse-gradient {
+
+            0%,
+            100% {
+                opacity: 0.8;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .animate-gradient {
+            animation: pulse-gradient 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body class="p-6 md:p-8">
+    <div class="max-w-7xl mx-auto relative z-10">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 id="titleText" class="text-3xl font-bold stat-value">Lead Monitor</h1>
+                <p id="subtitleText" class="text-sm mt-1" style="color: var(--text-muted)">Google Maps Professional
+                    Scraper</p>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="flex-1 max-w-lg mx-4">
+                <form id="searchForm" class="relative">
+                    <input type="text" id="queryInput" placeholder="Search: 'Restaurants in Buenos Aires'..."
+                        class="input-field w-full pr-20 text-sm">
+                    <button type="submit" id="scrapeBtn" class="btn-primary absolute right-1 top-1 text-xs py-1.5 px-3">
+                        Scrape
+                    </button>
+                </form>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Language Selector -->
+                <select id="langSelector" class="theme-selector" title="Language">
+                    <option value="en" selected>🇺🇸 EN</option>
+                    <option value="es">🇪🇸 ES</option>
+                </select>
+
+                <!-- Theme Selector -->
+                <select id="themeSelector" class="theme-selector" title="Theme">
+                    <option value="gradient" selected>🎨 Gradient</option>
+                    <option value="neon" disabled>⚡ Neon</option>
+                    <option value="minimal" disabled>✨ Minimal</option>
+                </select>
+
+                <!-- Export Button -->
+                <a href="/api/export/csv" class="btn-primary text-xs flex items-center gap-1" id="exportBtn">
+                    📥 Export
+                </a>
+
+
+                <div class="flex flex-col items-end gap-1">
+                    <div class="flex items-center gap-2">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                                style="background: var(--accent-1)"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5"
+                                style="background: var(--accent-2)"></span>
+                        </span>
+                        <span id="activeText" class="text-xs font-medium" style="color: var(--accent-2)">Active</span>
+                    </div>
+                    <div id="activeStatus" class="hidden">
+                        <span class="text-xs animate-pulse" style="color: var(--accent-3)"
+                            id="statusText">Scraping...</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Filter Bar -->
+        <div class="glass-card p-4 mb-6">
+            <div class="flex flex-wrap items-end gap-4">
+                <div>
+                    <label id="filterSearchLabel" class="text-xs block mb-1.5"
+                        style="color: var(--text-muted)">Search</label>
+                    <input type="text" id="filterSearch" placeholder="Filter by name..."
+                        class="input-field text-sm w-36">
+                </div>
+                <div>
+                    <label id="minRatingLabel" class="text-xs block mb-1.5" style="color: var(--text-muted)">Min
+                        Rating</label>
+                    <select id="filterMinRating" class="input-field text-sm">
+                        <option value="">Any</option>
+                        <option value="3">3+ ★</option>
+                        <option value="4">4+ ★</option>
+                        <option value="4.5">4.5+ ★</option>
+                    </select>
+                </div>
+                <div>
+                    <label id="websiteLabel" class="text-xs block mb-1.5"
+                        style="color: var(--text-muted)">Website</label>
+                    <select id="filterWebsite" class="input-field text-sm">
+                        <option value="">Any</option>
+                        <option value="true">Has Website</option>
+                        <option value="false">No Website 🎯</option>
+                    </select>
+                </div>
+                <div>
+                    <label id="sortLabel" class="text-xs block mb-1.5" style="color: var(--text-muted)">Sort</label>
+                    <select id="sortBy" class="input-field text-sm">
+                        <option value="score">Best Score</option>
+                        <option value="recent">Most Recent</option>
+                        <option value="rating">Highest Rating</option>
+                        <option value="reviews">Most Reviews</option>
+                    </select>
+                </div>
+                <button id="applyBtn" onclick="applyFilters()" class="btn-primary text-xs">Apply</button>
+                <button id="clearBtn" onclick="clearFilters()" class="btn-secondary text-xs">Clear</button>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div class="glass-card gradient-border p-4">
+                <h3 id="totalLabel" class="text-xs uppercase tracking-wider" style="color: var(--text-muted)">Total</h3>
+                <p class="text-3xl font-bold mt-1 stat-value" id="totalCount">0</p>
+            </div>
+            <div class="glass-card gradient-border p-4">
+                <h3 id="withWebLabel" class="text-xs uppercase tracking-wider" style="color: var(--text-muted)">With Web
+                </h3>
+                <p class="text-3xl font-bold mt-1" style="color: var(--accent-3)" id="websiteCount">0</p>
+            </div>
+            <div class="glass-card gradient-border p-4">
+                <h3 id="noWebLabel" class="text-xs uppercase tracking-wider" style="color: var(--text-muted)">No Web
+                </h3>
+                <p class="text-3xl font-bold mt-1" style="color: var(--accent-1)" id="noWebsiteCount">0</p>
+            </div>
+            <div class="glass-card gradient-border p-4">
+                <h3 id="avgRatingLabel" class="text-xs uppercase tracking-wider" style="color: var(--text-muted)">Avg
+                    Rating</h3>
+                <p class="text-3xl font-bold mt-1" style="color: var(--accent-2)" id="avgRating">0.0</p>
+            </div>
+            <div class="glass-card gradient-border p-4">
+                <h3 id="openNowLabel" class="text-xs uppercase tracking-wider" style="color: var(--text-muted)">Open Now
+                </h3>
+                <p class="text-3xl font-bold mt-1" style="color: #10b981" id="openNowCount">0</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Table Section -->
+            <div class="lg:col-span-2 glass-card overflow-hidden">
+                <div class="p-4 border-b flex justify-between items-center" style="border-color: var(--border-color)">
+                    <h2 class="font-semibold"><span id="leadsTitle">Leads</span> <span id="displayCount"
+                            class="text-sm font-normal" style="color: var(--text-muted)"></span></h2>
+                    <span id="liveTag" class="text-xs px-2 py-1 rounded-full"
+                        style="background: var(--bg-secondary); color: var(--text-muted)">Live</span>
+                </div>
+                <div class="overflow-x-auto max-h-[480px] overflow-y-auto">
+                    <table class="data-table text-sm">
+                        <thead class="text-xs uppercase sticky top-0" style="color: var(--text-muted)">
+                            <tr>
+                                <th class="px-3 py-3 text-left">Score</th>
+                                <th class="px-3 py-3 text-left">Name</th>
+                                <th class="px-3 py-3 text-left">Rating</th>
+                                <th class="px-3 py-3 text-left">Phone</th>
+                                <th class="px-3 py-3 text-left">Status</th>
+                                <th class="px-3 py-3 text-left">Links</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="flex flex-col gap-6">
+                <!-- Chart -->
+                <div class="glass-card p-5">
+                    <h2 id="ratingDistTitle" class="font-semibold mb-4">Rating Distribution</h2>
+                    <div class="h-[180px]">
+                        <canvas id="ratingChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Campaign -->
+                <div class="glass-card p-4">
+                    <h2 id="campaignTitle" class="font-semibold mb-3">Batch Campaign</h2>
+                    <textarea id="campaignQueries" rows="3"
+                        placeholder="Queries (one per line):&#10;Dentists in Morón&#10;Dentists in Ramos Mejía"
+                        class="input-field w-full text-xs mb-3"></textarea>
+                    <div class="flex gap-2">
+                        <button onclick="startCampaign()" id="campaignStartBtn" class="btn-primary flex-1 text-xs">
+                            ▶ Start
+                        </button>
+                        <button onclick="stopCampaign()" id="campaignStopBtn"
+                            class="btn-secondary flex-1 text-xs hidden">
+                            ⏹ Stop
+                        </button>
+                    </div>
+                    <div id="campaignStatus" class="hidden mt-3 text-xs">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span id="progressLabel" style="color: var(--text-muted)">Progress:</span>
+                            <span style="color: var(--accent-3)" id="campaignProgress">0/0</span>
+                        </div>
+                    </div>
+                    <div id="campaignCurrent" style="color: var(--text-secondary)"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chartInstance = null;
+        let allData = [];
+        let currentLang = localStorage.getItem('lang') || 'en';
+
+        // i18n Translations
+        const i18n = {
+            en: {
+                title: 'Harv3st',
+                subtitle: 'Lead Generation Dashboard',
+                searchPlaceholder: "Search: 'Restaurants in Buenos Aires'...",
+                scrape: 'Scrape',
+                export: 'Export',
+                active: 'Active',
+                scraping: 'Scraping',
+                search: 'Search',
+                filterPlaceholder: 'Filter by name...',
+                minRating: 'Min Rating',
+                any: 'Any',
+                website: 'Website',
+                hasWebsite: 'Has Website',
+                noWebsite: 'No Website',
+                sort: 'Sort',
+                bestScore: 'Best Score',
+                mostRecent: 'Most Recent',
+                highestRating: 'Highest Rating',
+                mostReviews: 'Most Reviews',
+                apply: 'Apply',
+                clear: 'Clear',
+                total: 'Total',
+                withWeb: 'With Web',
+                noWeb: 'No Web',
+                avgRating: 'Avg Rating',
+                openNow: 'Open Now',
+                leads: 'Leads',
+                shown: 'shown',
+                live: 'Live',
+                score: 'Score',
+                name: 'Name',
+                rating: 'Rating',
+                phone: 'Phone',
+                status: 'Status',
+                links: 'Links',
+                open: 'Open',
+                closed: 'Closed',
+                address: 'Address',
+                categories: 'Categories',
+                photos: 'Photos',
+                attributes: 'Attributes',
+                ratingDist: 'Rating Distribution',
+                batchCampaign: 'Batch Campaign',
+                campaignPlaceholder: 'Queries (one per line):',
+                start: 'Start',
+                stop: 'Stop',
+                progress: 'Progress',
+                running: 'Running'
+            },
+            es: {
+                title: 'Harv3st',
+                subtitle: 'Panel de Generación de Leads',
+                searchPlaceholder: "Buscar: 'Restaurantes en Buenos Aires'...",
+                scrape: 'Scrapear',
+                export: 'Exportar',
+                active: 'Activo',
+                scraping: 'Scrapeando',
+                search: 'Buscar',
+                filterPlaceholder: 'Filtrar por nombre...',
+                minRating: 'Rating Mín',
+                any: 'Todos',
+                website: 'Sitio Web',
+                hasWebsite: 'Con Sitio',
+                noWebsite: 'Sin Sitio',
+                sort: 'Ordenar',
+                bestScore: 'Mejor Score',
+                mostRecent: 'Más Reciente',
+                highestRating: 'Mayor Rating',
+                mostReviews: 'Más Reseñas',
+                apply: 'Aplicar',
+                clear: 'Limpiar',
+                total: 'Total',
+                withWeb: 'Con Web',
+                noWeb: 'Sin Web',
+                avgRating: 'Rating Prom',
+                openNow: 'Abierto',
+                leads: 'Leads',
+                shown: 'mostrados',
+                live: 'En Vivo',
+                score: 'Score',
+                name: 'Nombre',
+                rating: 'Rating',
+                phone: 'Teléfono',
+                status: 'Estado',
+                links: 'Links',
+                open: 'Abierto',
+                closed: 'Cerrado',
+                address: 'Dirección',
+                categories: 'Categorías',
+                photos: 'Fotos',
+                attributes: 'Atributos',
+                ratingDist: 'Distribución de Rating',
+                batchCampaign: 'Campaña por Lotes',
+                campaignPlaceholder: 'Consultas (una por línea):',
+                start: 'Iniciar',
+                stop: 'Detener',
+                progress: 'Progreso',
+                running: 'Ejecutando'
+            }
+        };
+
+        function t(key) {
+            return i18n[currentLang][key] || key;
+        }
+
+        function updateLanguage() {
+            // Update all translatable elements
+            document.getElementById('titleText').textContent = t('title');
+            document.getElementById('subtitleText').textContent = t('subtitle');
+            document.getElementById('queryInput').placeholder = t('searchPlaceholder');
+            document.getElementById('scrapeBtn').textContent = t('scrape');
+            document.getElementById('exportBtn').innerHTML = '📥 ' + t('export');
+            document.getElementById('activeText').textContent = t('active');
+            document.getElementById('filterSearchLabel').textContent = t('search');
+            document.getElementById('filterSearch').placeholder = t('filterPlaceholder');
+            document.getElementById('minRatingLabel').textContent = t('minRating');
+            document.getElementById('websiteLabel').textContent = t('website');
+            document.getElementById('sortLabel').textContent = t('sort');
+            document.getElementById('applyBtn').textContent = t('apply');
+            document.getElementById('clearBtn').textContent = t('clear');
+            document.getElementById('totalLabel').textContent = t('total');
+            document.getElementById('withWebLabel').textContent = t('withWeb');
+            document.getElementById('noWebLabel').textContent = t('noWeb');
+            document.getElementById('avgRatingLabel').textContent = t('avgRating');
+            document.getElementById('openNowLabel').textContent = t('openNow');
+            document.getElementById('leadsTitle').textContent = t('leads');
+            document.getElementById('liveTag').textContent = t('live');
+            document.getElementById('ratingDistTitle').textContent = t('ratingDist');
+            document.getElementById('campaignTitle').textContent = t('batchCampaign');
+            document.getElementById('campaignQueries').placeholder = t('campaignPlaceholder');
+            document.getElementById('campaignStartBtn').innerHTML = '▶ ' + t('start');
+            document.getElementById('campaignStopBtn').innerHTML = '⏹ ' + t('stop');
+            document.getElementById('progressLabel').textContent = t('progress') + ':';
+
+            // Update select options
+            updateSelectOptions();
+        }
+
+        function updateSelectOptions() {
+            const minRating = document.getElementById('filterMinRating');
+            minRating.options[0].text = t('any');
+
+            const website = document.getElementById('filterWebsite');
+            website.options[0].text = t('any');
+            website.options[1].text = t('hasWebsite');
+            website.options[2].text = t('noWebsite') + ' 🎯';
+
+            const sortBy = document.getElementById('sortBy');
+            sortBy.options[0].text = t('bestScore');
+            sortBy.options[1].text = t('mostRecent');
+            sortBy.options[2].text = t('highestRating');
+            sortBy.options[3].text = t('mostReviews');
+        }
+
+        // Language selector
+        document.getElementById('langSelector').addEventListener('change', function () {
+            currentLang = this.value;
+            localStorage.setItem('lang', currentLang);
+            updateLanguage();
+            applyFilters(); // Re-render table with new language
+        });
+
+        // Theme switching (disabled options reset to gradient)
+        document.getElementById('themeSelector').addEventListener('change', function () {
+            this.value = 'gradient';
+        });
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/data/scored');
+                allData = await response.json();
+                applyFilters();
+                checkStatus();
+                checkCampaignStatus();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+                const activeBar = document.getElementById('activeStatus');
+                const statusText = document.getElementById('statusText');
+
+                if (status.active_tasks && status.active_tasks.length > 0) {
+                    activeBar.classList.remove('hidden');
+                    statusText.textContent = `Scraping: ${status.active_tasks.join(', ')}...`;
+                } else {
+                    activeBar.classList.add('hidden');
+                }
+            } catch (error) { }
+        }
+
+        async function checkCampaignStatus() {
+            try {
+                const response = await fetch('/api/campaign/status');
+                const status = await response.json();
+                const statusDiv = document.getElementById('campaignStatus');
+                const startBtn = document.getElementById('campaignStartBtn');
+                const stopBtn = document.getElementById('campaignStopBtn');
+
+                if (status.is_running) {
+                    statusDiv.classList.remove('hidden');
+                    startBtn.classList.add('hidden');
+                    stopBtn.classList.remove('hidden');
+                    document.getElementById('campaignProgress').textContent = `${status.completed}/${status.total}`;
+                    document.getElementById('campaignCurrent').textContent = `Running: ${status.current_query || '-'}`;
+                } else {
+                    startBtn.classList.remove('hidden');
+                    stopBtn.classList.add('hidden');
+                    if (status.total > 0) {
+                        statusDiv.classList.remove('hidden');
+                        document.getElementById('campaignProgress').textContent = `${status.completed}/${status.total} ✓`;
+                        document.getElementById('campaignCurrent').textContent = '';
+                    }
+                }
+            } catch (error) { }
+        }
+
+        async function startCampaign() {
+            const textarea = document.getElementById('campaignQueries');
+            const queries = textarea.value.split('\n').map(q => q.trim()).filter(q => q);
+            if (queries.length === 0) return alert('Enter at least one query');
+
+            try {
+                const response = await fetch('/api/campaign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ queries, delay_seconds: 30 })
+                });
+                checkCampaignStatus();
+            } catch (err) {
+                alert('Error starting campaign');
+            }
+        }
+
+        async function stopCampaign() {
+            await fetch('/api/campaign/stop', { method: 'POST' });
+            checkCampaignStatus();
+        }
+
+        document.getElementById('searchForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('queryInput');
+            const query = input.value.trim();
+            if (!query) return;
+
+            input.value = '';
+            await fetch('/api/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            });
+            checkStatus();
+        };
+
+        function applyFilters() {
+            const search = document.getElementById('filterSearch').value.toLowerCase();
+            const minRating = parseFloat(document.getElementById('filterMinRating').value) || 0;
+            const hasWebsite = document.getElementById('filterWebsite').value;
+            const sortBy = document.getElementById('sortBy').value;
+
+            let filtered = allData.filter(item => {
+                if (search && !item.name?.toLowerCase().includes(search)) return false;
+                if (minRating && (item.averageRating || 0) < minRating) return false;
+                if (hasWebsite === 'true' && (!item.website || item.website.includes('search.google.com'))) return false;
+                if (hasWebsite === 'false' && item.website && !item.website.includes('search.google.com')) return false;
+                return true;
+            });
+
+            if (sortBy === 'score') filtered.sort((a, b) => (b.score || 0) - (a.score || 0));
+            else if (sortBy === 'rating') filtered.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+            else if (sortBy === 'reviews') filtered.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+            else filtered.reverse();
+
+            updateUI(filtered);
+        }
+
+        function clearFilters() {
+            document.getElementById('filterSearch').value = '';
+            document.getElementById('filterMinRating').value = '';
+            document.getElementById('filterWebsite').value = '';
+            document.getElementById('sortBy').value = 'score';
+            applyFilters();
+        }
+
+        function updateUI(data) {
+            // Stats (always show totals from allData)
+            document.getElementById('totalCount').textContent = allData.length;
+            const withWebsite = allData.filter(i => i.website && !i.website.includes('search.google.com')).length;
+            document.getElementById('websiteCount').textContent = withWebsite;
+            document.getElementById('noWebsiteCount').textContent = allData.length - withWebsite;
+            document.getElementById('openNowCount').textContent = allData.filter(i => i.isOpenNow === true).length;
+
+            const totalRating = allData.reduce((acc, curr) => acc + (parseFloat(curr.averageRating) || 0), 0);
+            document.getElementById('avgRating').textContent = allData.length ? (totalRating / allData.length).toFixed(1) : '0.0';
+
+            document.getElementById('displayCount').textContent = `(${data.length} shown)`;
+
+            // Table
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            data.slice(0, 50).forEach((item, idx) => {
+                const score = item.score || 0;
+                const scoreClass = score >= 40 ? 'score-high' : score >= 20 ? 'score-medium' : 'score-low';
+
+                const openBadge = item.isOpenNow === true
+                    ? '<span class="px-2 py-0.5 rounded-full text-xs" style="background: rgba(16,185,129,0.2); color: #10b981">Open</span>'
+                    : item.isOpenNow === false
+                        ? '<span class="px-2 py-0.5 rounded-full text-xs" style="background: rgba(239,68,68,0.2); color: #ef4444">Closed</span>'
+                        : '-';
+
+                const websiteBtn = item.website && !item.website.includes('search.google.com')
+                    ? `<a href="${item.website}" target="_blank" class="px-2 py-0.5 rounded text-xs" style="background: rgba(139,92,246,0.2); color: var(--accent-3)">Web</a>`
+                    : '';
+
+                const reviewsBtn = item.reviewsUrl
+                    ? `<a href="${item.reviewsUrl}" target="_blank" class="px-2 py-0.5 rounded text-xs ml-1" style="background: rgba(255,107,53,0.2); color: var(--accent-1)">Reviews</a>`
+                    : '';
+
+                tbody.innerHTML += `
+                    <tr class="cursor-pointer" onclick="toggleDetails(${idx})">
+                        <td class="px-3 py-2.5"><span class="score-badge ${scoreClass}">${score}</span></td>
+                        <td class="px-3 py-2.5 font-medium truncate max-w-[150px]">${item.name}</td>
+                        <td class="px-3 py-2.5 text-xs" style="color: var(--accent-2)">★ ${item.averageRating || '-'} <span style="color: var(--text-muted)">(${item.reviewCount || 0})</span></td>
+                        <td class="px-3 py-2.5 font-mono text-xs" style="color: var(--text-secondary)">${item.phones || '-'}</td>
+                        <td class="px-3 py-2.5">${openBadge}</td>
+                        <td class="px-3 py-2.5">${websiteBtn}${reviewsBtn}</td>
+                    </tr>
+                    <tr class="expand-row" id="details-${idx}" style="background: var(--bg-secondary)">
+                        <td colspan="6" class="px-4 py-3 text-xs">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span style="color: var(--text-muted)">Address:</span> ${item.fullAddress || '-'}<br>
+                                    <span style="color: var(--text-muted)">Categories:</span> ${item.categories || '-'}
+                                </div>
+                                <div>
+                                    <span style="color: var(--text-muted)">Photos:</span> ${item.photoCount || 0}<br>
+                                    <span style="color: var(--text-muted)">Attributes:</span> ${item.attributes ? item.attributes.join(', ') : '-'}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            updateChart(allData);
+        }
+
+        function toggleDetails(idx) {
+            document.getElementById('details-' + idx)?.classList.toggle('active');
+        }
+
+        function updateChart(data) {
+            const ratings = [0, 0, 0, 0, 0];
+            data.forEach(item => {
+                const r = Math.round(parseFloat(item.averageRating) || 0);
+                if (r >= 1 && r <= 5) ratings[r - 1]++;
+            });
+
+            const ctx = document.getElementById('ratingChart').getContext('2d');
+
+            if (chartInstance) {
+                chartInstance.data.datasets[0].data = ratings;
+                chartInstance.update();
+            } else {
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['1★', '2★', '3★', '4★', '5★'],
+                        datasets: [{
+                            label: 'Count',
+                            data: ratings,
+                            backgroundColor: (context) => {
+                                const chart = context.chart;
+                                const { ctx, chartArea } = chart;
+                                if (!chartArea) return '#8B5CF6';
+                                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                                gradient.addColorStop(0, '#FF6B35');
+                                gradient.addColorStop(0.5, '#FF1493');
+                                gradient.addColorStop(1, '#8B5CF6');
+                                return gradient;
+                            },
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { grid: { color: 'rgba(139, 92, 246, 0.1)' }, ticks: { color: '#718096' } },
+                            x: { grid: { display: false }, ticks: { color: '#718096' } }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize language and load data
+        document.getElementById('langSelector').value = currentLang;
+        updateLanguage();
+        setInterval(fetchData, 5000);
+        fetchData();
+    </script>
+</body>
+
+</html>

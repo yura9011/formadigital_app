@@ -1,0 +1,47 @@
+# Dependencies
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Data files (contain scraped leads)
+data/*.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Playwright recordings
+*.webm
+*.mp4
+
+# Logs
+*.log
+
+# Debug/Test files
+debug_*.py
+debug_*.txt
+test_*.py
+
+# Legacy experiments
+legacy/
+
+# Userscript files
+*.user.js
+userscript_mod_guide.txt
+
+# Old server file
+server.py
+bot.py
+
+# Agent guide (internal)
+AGENT_API_GUIDE.md

@@ -17,6 +17,7 @@ import { GbpReviewsModule } from './gbp/gbp-reviews.module';
 import { GscModule } from './gsc/gsc.module';
 import { AgencyModule } from './agency/agency.module';
 import { CalendarModule } from './calendar/calendar.module';
+import { ProspectModule } from './prospect/prospect.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { CalendarModule } from './calendar/calendar.module';
     GscModule,
     AgencyModule,
     CalendarModule,
+    ProspectModule,
   ],
   controllers: [AppController],
   providers: [AppService],

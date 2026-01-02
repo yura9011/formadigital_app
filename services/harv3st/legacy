@@ -1,0 +1,221 @@
+import json
+import time
+import requests
+from playwright.sync_api import sync_playwright
+
+DASHBOARD_URL = "http://localhost:5050/api/collect"
+
+def extract_data_from_array(item):
+    """
+    Reverse engineered logic from the Userscript.
+    Maps obscure array indices to readable fields.
+    """
+    try:
+        # Helper to safely get nested lists
+        def get(arr, *indices):
+            curr = arr
+            for idx in indices:
+                if isinstance(curr, list) and len(curr) > idx and curr[idx] is not None:
+                    curr = curr[idx]
+                else:
+                    return None
+            return curr
+
+        # Field Mapping (Based on 2025 Debug Analysis)
+        # item[11] = Name
+        # item[178][0][0] = Phone
+        # item[7][0] or item[4][3][0] = Website? Let's try multiple candidates
+        # item[11] = Name
+        name = get(item, 11)
+        if not name: return None
+
+        # Address: item[2] is ["Street", "City"] list
+        addr_list = get(item, 2)
+        full_address = ", ".join(addr_list) if isinstance(addr_list, list) else get(item, 39)
+
+        # Phone: Found at [178, 0, 0]
+        # Also typically at [178, 0, 1] formatted
+        phone = get(item, 178, 0, 0) or get(item, 178, 0, 1)
+
+        # Website: Found at [4, 3, 0] in some cases, or [7, 0]
+        website = get(item, 7, 0)
+        if not website:
+            website = get(item, 4, 3, 0) 
+
+        # Lat/Lng: Found at [9, 2] and [9, 3] usually
+        lat = get(item, 9, 2)
+        lng = get(item, 9, 3)
+        
+        # Categories: item[13]
+        categories = get(item, 13)
+
+        data = {
+            "placeId": get(item, 78) or get(item, 0), # 0 is also an ID often
+            "name": name,
+            "averageRating": get(item, 4, 7),
+            "reviewCount": get(item, 4, 8),
+            "phones": phone,
+            "website": website,
+            "latitude": lat,
+            "longitude": lng,
+            "categories": categories,
+            "fullAddress": full_address,
+        }
+
+        # Cleanup
+        if data['categories']:
+             try:
+                data['categories'] = ", ".join(data['categories'])
+             except:
+                pass
+
+        return data
+
+    except Exception as e:
+        print(f"⚠️ Extraction Error: {e}")
+        return None
+
+def intercept_response(response):
+    """
+    Listens for Google Maps data responses.
+    """
+    # Only process search results
+    if not ("search" in response.url and "tbm=map" in response.url):
+        return
+    
+    if response.status != 200:
+        return
+
+    try:
+        text = response.text()
+        
+        # Save sample for debugging
+        if len(text) > 1000:
+            with open('debug_sample.txt', 'w', encoding='utf-8') as f:
+                f.write(text)
+        
+        # Split by delimiter (Google may concatenate multiple JSONs)
+        chunks = text.split('/*""*/')
+        
+        for chunk in chunks:
+            chunk = chunk.strip()
+            if not chunk:
+                continue
+            
+            try:
+                rsp_json = json.loads(chunk)
+                raw_data = rsp_json.get('d', '')
+                if not raw_data:
+                    continue
+                    
+                if raw_data.startswith(")]}'"):
+                    raw_data = raw_data.replace(")]}'", "")
+                
+                parsed_data = json.loads(raw_data)
+                
+                # Direct access to the results list at confirmed path
+                data_list = None
+                try:
+                    candidate = parsed_data[64][0]
+                    if isinstance(candidate, list) and len(candidate) > 1:
+                        test_item = candidate[1]
+                        if isinstance(test_item, list) and len(test_item) > 11 and isinstance(test_item[11], str):
+                            data_list = candidate
+                            print(f"🔍 Found results at path [64][0]! {len(data_list)} items.")
+                except (IndexError, TypeError):
+                    # Fallback: search for the list manually (from end)
+                    if isinstance(parsed_data, list):
+                        for i in range(len(parsed_data) - 1, -1, -1):
+                            node = parsed_data[i]
+                            if isinstance(node, list) and len(node) > 0:
+                                potential_list = node[0]
+                                if isinstance(potential_list, list) and len(potential_list) > 1:
+                                    test_biz = potential_list[1]
+                                    if isinstance(test_biz, list) and len(test_biz) > 11:
+                                        if isinstance(test_biz[11], str) and test_biz[11]:
+                                            data_list = potential_list
+                                            print(f"🔍 Found results at Node {i}! {len(data_list)} items.")
+                                            break
+                
+                # Extract items from data_list
+                if data_list:
+                    extracted_items = []
+                    for raw_item in data_list:
+                        if isinstance(raw_item, list) and len(raw_item) > 11:
+                            clean_item = extract_data_from_array(raw_item)
+                            if clean_item:
+                                extracted_items.append(clean_item)
+                    
+                    if extracted_items:
+                        print(f"🎯 Captured {len(extracted_items)} businesses from network.")
+                        try:
+                            r = requests.post(DASHBOARD_URL, json=extracted_items)
+                            print(f"   DISK: {r.json().get('added', 0)} new items saved.")
+                        except Exception as req_err:
+                            print(f"   ❌ Dashboard Offline? {req_err}")
+                        return  # Stop after successful extraction
+                        
+            except json.JSONDecodeError:
+                continue
+                
+    except Exception as e:
+        print(f"⚠️ Response processing error: {e}")
+
+
+def run_scraper(search_query):
+    with sync_playwright() as p:
+        print("🚀 Launching Browser...")
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context(
+            viewport={'width': 1280, 'height': 800},
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        )
+        page = context.new_page()
+
+        page.on("response", intercept_response)
+
+        print(f"🔍 Searching for: {search_query}")
+        page.goto(f"https://www.google.com/maps/search/{search_query}")
+        
+        page.wait_for_timeout(3000)
+
+        try:
+            feed_selector = '[role="feed"]'
+            page.wait_for_selector(feed_selector, timeout=5000)
+            print("✅ Results feed found. Starting Auto-Scroll...")
+            
+            for i in range(100):
+                print(f"📜 Scroll #{i+1}")
+                
+                # Correct JS syntax wrapped in arrow function
+                page.evaluate(f'''() => {{
+                    const el = document.querySelector('{feed_selector}');
+                    if(el) {{
+                        el.scrollBy(0, 1000);
+                    }}
+                }}''')
+                
+                time.sleep(2) 
+                
+                is_end = page.evaluate(f'''() => {{
+                    const el = document.querySelector('{feed_selector}');
+                    const last = el ? el.lastElementChild : null;
+                    return last && last.getAttribute('style') && last.getAttribute('style').includes('height');
+                }}''')
+                
+                if is_end:
+                     print("✅ Reached end of results.")
+                     break
+
+        except Exception as e:
+            print(f"⚠️ Scroll error: {e}")
+
+        print("🛑 Scraper finished. Keeping open for 10s...")
+        time.sleep(10)
+        browser.close()
+
+if __name__ == "__main__":
+    query = input("Enter search Query (e.g. 'Coffee in New York'): ")
+    if not query:
+        query = "Restaurants in Madrid"
+    run_scraper(query)

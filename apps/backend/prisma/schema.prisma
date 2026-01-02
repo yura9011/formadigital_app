@@ -46,6 +46,11 @@ model User {
   gscProperties    GscProperty[]
   reminders        Reminder[]
   assignedProjects Project[]         @relation("ProjectAssignee")
+  
+  // Prospecting relations
+  contactRecords   ContactRecord[]
+  messageTemplates MessageTemplate[]
+  prospectConfig   ProspectConfig?
 }
 
 // Google OAuth credentials for GBP/GSC API access
@@ -148,6 +153,13 @@ model Client {
   source        String?             // "SerpApi", "Manual", "Playwright"
   placeId       String?   @unique   // Google Place ID for deduplication
 
+  // === Prospecting Fields ===
+  contactStatus   String?   @default("none")  // none, pending, approved, sent, rejected, responded
+  lastContactedAt DateTime?                   // Last time this client was contacted
+
+  // Relations for prospecting
+  contacts        ContactRecord[]
+
   @@unique([name, address])
 }
 
@@ -237,6 +249,15 @@ enum ClientType {
   COMPETITOR
 }
 
+enum PipelineStage {
+  DISCOVERED   // Recién encontrado/importado
+  ANALYZED     // Analizado con score y gaps
+  CONTACTED    // Se envió al menos un mensaje
+  RESPONDED    // El lead respondió
+  CONVERTED    // Se convirtió en cliente
+  DISCARDED    // Descartado (no interesa)
+}
+
 enum PostState {
   QUEUE
   PUBLISHED
@@ -268,4 +289,70 @@ enum ReminderStatus {
   ACTIVE      // Due date reached
   COMPLETED   // Marked as done
   DISMISSED   // Ignored/cancelled
+}
+
+// === PROSPECTING MODELS ===
+
+// Contact Record - registro de cada intento de contacto
+model ContactRecord {
+  id          String    @id @default(uuid())
+  clientId    String
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  channel     String    // instagram, whatsapp, email
+  message     String    @db.Text
+  status      String    @default("pending") // pending, approved, sent, rejected, responded
+  notes       String?   @db.Text
+  sentAt      DateTime?
+  respondedAt DateTime?
+  
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id])
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([clientId])
+  @@index([status])
+  @@index([userId])
+}
+
+// Message Template - plantillas de mensaje para prospección
+model MessageTemplate {
+  id          String    @id @default(uuid())
+  name        String
+  channel     String    // instagram, whatsapp, email
+  scenario    String    // sin_sitio, rating_bajo, sin_fotos, sin_redes, general
+  content     String    @db.Text
+  isDefault   Boolean   @default(false)
+  
+  userId      String?   // null = global template available to all users
+  user        User?     @relation(fields: [userId], references: [id])
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([channel])
+  @@index([scenario])
+  @@index([userId])
+}
+
+// Prospect Config - configuración de prospección por usuario
+model ProspectConfig {
+  id                    String  @id @default(uuid())
+  userId                String  @unique
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  userName              String?
+  companyName           String?
+  defaultChannel        String  @default("instagram") // instagram, whatsapp, email
+  maxContactsPerSession Int     @default(10)
+  signature             String? @db.Text
+  
+  // Social handles for outreach
+  instagramHandle       String?
+  whatsappNumber        String?
+  emailAddress          String?
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }

@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "prospecting": {
+      "command": "npx",
+      "args": ["tsx", "tools/prospecting-mcp/src/index.ts"],
+      "env": {
+        "PROSPECT_API_URL": "http://localhost:3001/api/prospect"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "get_leads",
+        "get_lead_detail",
+        "get_contact_history",
+        "get_contact_stats",
+        "get_templates",
+        "get_user_config",
+        "validate_contact_data"
+      ]
+    }
+  }
+}

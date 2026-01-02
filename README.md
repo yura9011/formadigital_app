@@ -1,6 +1,6 @@
 # Forma Digital App
 
-A social media scheduling and **Local Business Intelligence** platform built with **NestJS** (Backend), **Next.js** (Frontend), and **Python Agent V2** (AI Analysis).
+A social media scheduling and **Local Business Intelligence** platform built with **NestJS** (Backend), **Next.js** (Frontend), **Harv3st** (Google Maps Scraper), and **Python Agent V2** (AI Analysis).
 
 ## 🚀 Key Features
 
@@ -11,6 +11,7 @@ A social media scheduling and **Local Business Intelligence** platform built wit
 | 🤖 **AI Audit** | Blue Ocean strategy audits powered by Gemini/OpenRouter |
 | 📋 **Leads CRM** | Automatic lead capture from audits with tier scoring |
 | 📊 **PDF Reports** | Exportable audit reports with SWOT, Action Plans |
+| 🔍 **Harv3st Scraper** | Google Maps business scraping with Playwright |
 
 ---
 
@@ -19,8 +20,10 @@ A social media scheduling and **Local Business Intelligence** platform built wit
 ```
 forma-digital-app/
 ├── apps/
-│   ├── backend/        # NestJS API (Port 3001)
-│   └── frontend/       # Next.js 16 (Port 3000)
+│   ├── backend/        # NestJS API (Port 3000)
+│   └── frontend/       # Next.js 16 (Port 3001)
+├── services/
+│   └── harv3st/        # Python Google Maps Scraper (Port 5050)
 ├── scripts/
 │   └── agent_v2/       # Python AI Agent (LLM, Scraper, Sync)
 └── .github/agents/     # AI Persona Definitions
@@ -32,6 +35,7 @@ forma-digital-app/
 |-------|------------|
 | Backend | NestJS 11, Prisma, PostgreSQL, BullMQ |
 | Frontend | Next.js 16, React 19, TailwindCSS v4 |
+| Harv3st | Python 3.10+, Playwright, FastAPI |
 | AI Agent | Python 3.11+, Gemini, OpenRouter, Ollama |
 | Design | Neo-Brutalist (Bauhaus) |
 
@@ -41,7 +45,8 @@ forma-digital-app/
 
 ### Prerequisites
 - Node.js (v18+)
-- Python 3.11+
+- Python 3.10+ (for Harv3st)
+- Python 3.11+ (for AI Agent)
 - Docker Desktop (PostgreSQL & Redis)
 
 ### Installation
@@ -58,7 +63,12 @@ cd apps/backend
 npx prisma db push
 npx prisma db seed
 
-# 4. Setup Python agent
+# 4. Setup Harv3st (Google Maps Scraper)
+cd services/harv3st
+pip install -r requirements.txt
+playwright install
+
+# 5. Setup Python agent
 cd scripts/agent_v2
 pip install -r requirements.txt
 cp .env.example .env  # Add your API keys
@@ -66,13 +76,62 @@ cp .env.example .env  # Add your API keys
 
 ### Running the App
 
+The easiest way is to use the launcher script:
+
 ```bash
-# Backend (Port 3001)
+# Start all services (Backend, Frontend, Harv3st)
+dev.bat
+```
+
+Or manually:
+
+```bash
+# Harv3st (Port 5050)
+cd services/harv3st && python manager.py server
+
+# Backend (Port 3000)
 cd apps/backend && npm run start:dev
 
-# Frontend (Port 3000)
-cd apps/frontend && npm run dev
+# Frontend (Port 3001)
+cd apps/frontend && npm run dev -- -p 3001
 ```
+
+To stop all services:
+
+```bash
+stop.bat
+```
+
+---
+
+## 🔍 Harv3st - Google Maps Scraper
+
+Location: `services/harv3st/`
+
+Harv3st is a Python-based Google Maps scraper that uses Playwright for browser automation.
+
+### Features
+- Scrape business listings from Google Maps
+- Extract: name, address, phone, website, rating, reviews
+- Automatic deduplication
+- REST API for integration
+
+### API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/status` | Health check |
+| `POST /api/search` | Search businesses by query |
+| `GET /api/results/{job_id}` | Get search results |
+
+### Environment Variables
+
+```env
+# In apps/backend/.env
+HARV3ST_URL=http://localhost:5050
+```
+
+For more details, see `services/harv3st/README.md`.
 
 ---
 
