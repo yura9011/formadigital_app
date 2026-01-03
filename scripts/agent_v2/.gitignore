@@ -1,0 +1,24 @@
+# Hypothesis (Property-Based Testing)
+.hypothesis/
+
+# Logs
+logs/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+
+# Test data (keep templates, ignore runtime data)
+data/queue/
+data/history/
+data/campaigns/*.json
+!data/campaigns/.gitkeep

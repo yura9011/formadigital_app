@@ -10,6 +10,7 @@ from config import Config
 from app.scraper import run_scraper
 from core.scoring import score_all_leads
 from core.campaign import get_campaign_manager
+from instagram_enricher import enrich_instagram
 
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 CORS(app)
@@ -224,6 +225,35 @@ def clear_data():
         return jsonify({"status": "success", "message": "All data cleared"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# === INSTAGRAM ENRICHMENT ENDPOINT ===
+
+@app.route('/api/instagram/enrich', methods=['POST'])
+def instagram_enrich():
+    """
+    Enrich Instagram profile data for a given handle.
+    Rate limited to 10 requests per minute.
+    
+    Request body: { "handle": "username" }
+    Response: { "success": true, "data": {...} } or { "success": false, "error": "...", "error_code": "..." }
+    """
+    data = request.json
+    handle = data.get('handle') if data else None
+    
+    if not handle:
+        return jsonify({
+            "success": False,
+            "error": "No handle provided",
+            "error_code": "MISSING_HANDLE"
+        }), 400
+    
+    result = enrich_instagram(handle)
+    
+    if result.get('success'):
+        return jsonify(result)
+    else:
+        # Return 200 even for "not found" - it's not a server error
+        return jsonify(result)
 
 def start_server():
     print(f"🌍 Starting Server on {Config.API_URL}")

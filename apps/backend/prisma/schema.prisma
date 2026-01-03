@@ -136,11 +136,31 @@ model Client {
   reminders     Reminder[]
   type          ClientType @default(LEAD)
 
+  // === Pipeline Fields ===
+  stage           PipelineStage @default(DISCOVERED)
+  discardedAt     DateTime?
+  convertedAt     DateTime?
+  revivedAt       DateTime?
+  discardReason   String?
+
+  // === Extended GMB Fields ===
+  photoCount      Int?
+  hours           Json?
+  attributes      Json?
+  priceLevel      Int?
+  reviewsUrl      String?
+
   // === Enrichment Fields (Agent System) ===
   email         String?
   instagram     String?
   facebook      String?
   linkedin      String?
+  
+  // === Instagram Enrichment Fields ===
+  instagramFollowers    Int?
+  instagramPosts        Int?
+  instagramLastPostDate DateTime?
+  instagramBio          String?
   
   // Scoring & Classification
   tier          String?          // HOT, WARM, COLD
@@ -159,8 +179,11 @@ model Client {
 
   // Relations for prospecting
   contacts        ContactRecord[]
+  transitions     StageTransition[]
 
   @@unique([name, address])
+  @@index([stage])
+  @@index([score])
 }
 
 model Project {
@@ -256,6 +279,12 @@ enum PipelineStage {
   RESPONDED    // El lead respondió
   CONVERTED    // Se convirtió en cliente
   DISCARDED    // Descartado (no interesa)
+}
+
+enum ActorType {
+  USER
+  AGENT
+  SYSTEM
 }
 
 enum PostState {
@@ -355,4 +384,23 @@ model ProspectConfig {
   
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+}
+
+
+// === PIPELINE MODELS ===
+
+// Stage Transition - historial de cambios de etapa en el pipeline
+model StageTransition {
+  id          String        @id @default(uuid())
+  clientId    String
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  fromStage   PipelineStage
+  toStage     PipelineStage
+  reason      String?
+  actorType   ActorType
+  actorId     String?       // userId if USER, agentName if AGENT, null if SYSTEM
+  createdAt   DateTime      @default(now())
+  
+  @@index([clientId])
+  @@index([createdAt])
 }

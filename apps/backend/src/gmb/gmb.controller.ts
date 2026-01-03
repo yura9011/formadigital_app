@@ -5,7 +5,8 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { CreateProjectDto, UpdateProjectDto, CreatePhaseDto, UpdatePhaseDto, CreateTemplateDto, ReorderPhaseDto, CreateClientDto } from './dtos';
 import { GmbService } from './gmb.service';
-import { GeminiService, CompetitorSearchParams, AuditParams } from './gemini.service';
+import { GeminiService } from './gemini.service';
+import type { CompetitorSearchParams, AuditParams } from './gemini.service';
 import type { SearchParams, Business } from './types';
 import { ProjectStatus, PhaseStatus } from '@prisma/client';
 

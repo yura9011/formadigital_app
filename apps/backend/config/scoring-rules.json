@@ -1,0 +1,85 @@
+{
+  "version": "1.0",
+  "maxScore": 100,
+  "description": "Reglas de scoring para calcular el puntaje de oportunidad de leads",
+  "rules": [
+    {
+      "id": "no_website",
+      "name": "Sin sitio web",
+      "description": "El negocio no tiene sitio web - oportunidad de desarrollo web",
+      "weight": 25,
+      "condition": {
+        "field": "website",
+        "operator": "isNull"
+      }
+    },
+    {
+      "id": "low_rating_high_reviews",
+      "name": "Rating bajo con muchas reviews",
+      "description": "Rating menor a 4 pero con más de 10 reviews - necesita gestión de reputación",
+      "weight": 20,
+      "condition": {
+        "field": "rating",
+        "operator": "lessThan",
+        "value": 4,
+        "additionalCondition": {
+          "field": "reviewCount",
+          "operator": "greaterThan",
+          "value": 10
+        }
+      }
+    },
+    {
+      "id": "few_photos",
+      "name": "Pocas fotos",
+      "description": "Menos de 5 fotos en Google Maps - oportunidad de contenido visual",
+      "weight": 15,
+      "condition": {
+        "field": "photoCount",
+        "operator": "lessThan",
+        "value": 5
+      }
+    },
+    {
+      "id": "inactive_instagram",
+      "name": "Instagram inactivo",
+      "description": "Última publicación hace más de 30 días - necesita gestión de redes",
+      "weight": 15,
+      "condition": {
+        "field": "instagramLastPostDate",
+        "operator": "olderThanDays",
+        "value": 30
+      }
+    },
+    {
+      "id": "no_instagram",
+      "name": "Sin Instagram",
+      "description": "No tiene cuenta de Instagram detectada",
+      "weight": 10,
+      "condition": {
+        "field": "instagram",
+        "operator": "isNull"
+      }
+    },
+    {
+      "id": "no_email",
+      "name": "Sin email",
+      "description": "No tiene email de contacto",
+      "weight": 10,
+      "condition": {
+        "field": "email",
+        "operator": "isNull"
+      }
+    },
+    {
+      "id": "no_phone",
+      "name": "Sin teléfono",
+      "description": "No tiene teléfono de contacto",
+      "weight": 5,
+      "condition": {
+        "field": "phone",
+        "operator": "isNull"
+      }
+    }
+  ]
+}

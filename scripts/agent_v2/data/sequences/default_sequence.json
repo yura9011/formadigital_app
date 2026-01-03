@@ -1,0 +1,81 @@
+{
+  "id": "default_sequence",
+  "name": "Secuencia Estándar de Prospección",
+  "description": "Secuencia de 10 pasos con rotación de canales: WhatsApp → Instagram → Email",
+  "max_attempts": 10,
+  "active": true,
+  "steps": [
+    {
+      "position": 1,
+      "channel": "whatsapp",
+      "template_id": "whatsapp_initial",
+      "delay_hours": 0,
+      "description": "Primer contacto por WhatsApp"
+    },
+    {
+      "position": 2,
+      "channel": "whatsapp",
+      "template_id": "whatsapp_followup_1",
+      "delay_hours": 48,
+      "description": "Follow-up WhatsApp (2 días después)"
+    },
+    {
+      "position": 3,
+      "channel": "instagram",
+      "template_id": "instagram_initial",
+      "delay_hours": 72,
+      "description": "Primer contacto Instagram (3 días después)"
+    },
+    {
+      "position": 4,
+      "channel": "whatsapp",
+      "template_id": "whatsapp_followup_2",
+      "delay_hours": 168,
+      "description": "Follow-up WhatsApp 2 (1 semana después)"
+    },
+    {
+      "position": 5,
+      "channel": "instagram",
+      "template_id": "instagram_followup_1",
+      "delay_hours": 168,
+      "description": "Follow-up Instagram (1 semana después)"
+    },
+    {
+      "position": 6,
+      "channel": "email",
+      "template_id": "email_initial",
+      "delay_hours": 168,
+      "description": "Primer contacto Email (1 semana después)"
+    },
+    {
+      "position": 7,
+      "channel": "whatsapp",
+      "template_id": "whatsapp_final",
+      "delay_hours": 336,
+      "description": "WhatsApp final (2 semanas después)"
+    },
+    {
+      "position": 8,
+      "channel": "instagram",
+      "template_id": "instagram_final",
+      "delay_hours": 168,
+      "description": "Instagram final (1 semana después)"
+    },
+    {
+      "position": 9,
+      "channel": "email",
+      "template_id": "email_followup_1",
+      "delay_hours": 168,
+      "description": "Email follow-up (1 semana después)"
+    },
+    {
+      "position": 10,
+      "channel": "whatsapp",
+      "template_id": "whatsapp_last_chance",
+      "delay_hours": 336,
+      "description": "Último intento WhatsApp (2 semanas después)"
+    }
+  ],
+  "created_at": "2024-01-01T00:00:00",
+  "updated_at": "2024-01-01T00:00:00"
+}

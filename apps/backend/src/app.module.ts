@@ -18,6 +18,7 @@ import { GscModule } from './gsc/gsc.module';
 import { AgencyModule } from './agency/agency.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { ProspectModule } from './prospect/prospect.module';
+import { PipelineModule } from './pipeline/pipeline.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { ProspectModule } from './prospect/prospect.module';
     AgencyModule,
     CalendarModule,
     ProspectModule,
+    PipelineModule,
   ],
   controllers: [AppController],
   providers: [AppService],

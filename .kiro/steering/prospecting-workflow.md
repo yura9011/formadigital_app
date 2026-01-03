@@ -2,6 +2,25 @@
 
 Este archivo guía a los agentes de IA (Kiro, Claude, Cline) en el flujo de prospección automatizada.
 
+## Pipeline de Prospección
+
+El pipeline tiene 6 etapas:
+- **DISCOVERED** 🔍 - Leads recién encontrados/importados
+- **ANALYZED** 📊 - Leads analizados con score y gaps
+- **CONTACTED** 📨 - Se envió al menos un mensaje
+- **RESPONDED** 💬 - El lead respondió
+- **CONVERTED** 🎉 - Se convirtió en cliente
+- **DISCARDED** 🗑️ - Descartado (puede revivirse)
+
+### Transiciones Válidas
+```
+DISCOVERED → ANALYZED → CONTACTED → RESPONDED → CONVERTED
+     ↓           ↓           ↓           ↓
+  DISCARDED  DISCARDED  DISCARDED  DISCARDED
+     ↓
+  DISCOVERED (revival)
+```
+
 ## Flujo de Prospección UNIFICADO
 
 ### 0. Buscar NUEVOS Negocios (Harv3st)
@@ -16,7 +35,7 @@ search_businesses(query="gimnasios en Ramos Mejía")
 
 Esto:
 1. Llama a Harv3st para scrapear Google Maps
-2. Importa los resultados a la base de datos
+2. Importa los resultados a la base de datos (stage: DISCOVERED)
 3. Calcula el score de oportunidad automáticamente
 4. Retorna los leads importados listos para prospectar
 
@@ -25,18 +44,29 @@ Antes de buscar, verifica que Harv3st esté conectado:
 check_harv3st_status()
 ```
 
-### 1. Buscar Leads EXISTENTES
-Usa `get_leads` para filtrar negocios YA en la base de datos:
+### 1. Ver Estado del Pipeline
+Usa `get_pipeline_summary` para ver cuántos leads hay en cada etapa:
 
 ```
-# Buscar negocios sin sitio web (oportunidad de desarrollo)
-get_leads(hasWebsite=false, minScore=50, limit=10)
-
-# Buscar negocios con buen rating pero sin presencia digital
-get_leads(hasInstagram=false, minScore=60)
+get_pipeline_summary()
+# Retorna: { total: 150, byStage: { DISCOVERED: 80, ANALYZED: 30, ... } }
 ```
 
-### 2. Analizar Lead
+### 2. Buscar Leads por Etapa
+Usa `get_leads_by_stage` para filtrar por etapa del pipeline:
+
+```
+# Ver leads descubiertos ordenados por score
+get_leads_by_stage(stage="DISCOVERED", sortBy="score", sortOrder="desc")
+
+# Ver leads contactados
+get_leads_by_stage(stage="CONTACTED", limit=20)
+
+# Buscar por nombre
+get_leads_by_stage(stage="ANALYZED", search="restaurante")
+```
+
+### 3. Analizar Lead y Mover a ANALYZED
 Usa `get_lead_detail` para obtener información completa:
 
 ```
@@ -45,65 +75,104 @@ get_lead_detail(leadId="...")
 
 Esto retorna:
 - Datos del negocio (nombre, dirección, contacto)
-- Historial de contactos previos
-- Oportunidades detectadas
-- Escenario sugerido para el template
+- Score breakdown (qué reglas aplicaron)
+- Historial de transiciones
+- Datos de Instagram si están enriquecidos
 
-### 3. Enriquecer Datos (Opcional)
-Si el lead tiene sitio web pero falta email/instagram:
-
+Luego mueve el lead a ANALYZED:
 ```
-enrich_contact(leadId="...", fields=["email", "instagram"])
+move_lead_to_stage(leadId="...", toStage="ANALYZED")
 ```
 
-### 4. Preparar Mensaje
-Obtén templates y personaliza:
+### 4. Enriquecer con Instagram
+Si el lead tiene Instagram, enriquece los datos:
 
 ```
-# Obtener templates para el escenario
-get_templates(channel="instagram", scenario="sin_sitio")
+# Si ya tiene el handle guardado
+enrich_instagram(leadId="...")
 
-# Obtener config del usuario para personalización
-get_user_config()
+# Si necesitas especificar el handle
+enrich_instagram(leadId="...", handle="@negocio")
 ```
 
-Variables disponibles en templates:
-- `{nombre}` - Nombre del negocio
-- `{usuario}` - Tu nombre
-- `{empresa}` - Tu empresa
-- `{firma}` - Tu firma
+Esto obtiene: followers, posts, última publicación, bio.
 
-### 5. Crear Registro de Contacto
-Registra el intento de contacto:
+### 5. Ver Score Breakdown
+Para entender por qué un lead tiene cierto score:
 
 ```
-create_contact_record(
-  leadId="...",
-  channel="instagram",
-  message="Mensaje personalizado...",
-  status="pending"
-)
+get_score_breakdown(leadId="...")
+# Retorna: { total: 65, components: [{ ruleName: "Sin sitio web", points: 25, applied: true }, ...] }
 ```
 
-### 6. Aprobar y Enviar
-El usuario revisa y aprueba el mensaje. Luego actualiza el estado:
+### 6. Contactar Lead
+Después de preparar y enviar el mensaje:
 
 ```
-# Cuando el usuario aprueba
-update_contact_status(contactId="...", status="approved")
-
-# Cuando se envía el mensaje
-update_contact_status(contactId="...", status="sent")
-
-# Si hay respuesta
-update_contact_status(contactId="...", status="responded", notes="Interesado en cotización")
+# Mover a CONTACTED
+move_lead_to_stage(leadId="...", toStage="CONTACTED")
 ```
 
-### 7. Revisar Estadísticas
-Monitorea el progreso:
+### 7. Registrar Respuesta
+Cuando el lead responde:
 
 ```
-get_contact_stats()
+move_lead_to_stage(leadId="...", toStage="RESPONDED")
+```
+
+### 8. Convertir a Cliente
+Cuando se cierra el trato:
+
+```
+convert_lead(leadId="...", projectName="Desarrollo Web", projectDetails="Landing page + SEO")
+```
+
+Esto:
+- Cambia el tipo a CLIENT
+- Mueve a stage CONVERTED
+- Crea un Project vinculado
+
+### 9. Descartar Lead
+Si el lead no es viable:
+
+```
+move_lead_to_stage(leadId="...", toStage="DISCARDED", reason="No interesado")
+```
+
+### 10. Revivir Lead Descartado
+Si un lead descartado vuelve a ser relevante:
+
+```
+revive_lead(leadId="...", reason="Volvió a contactar")
+```
+
+### 11. Ver Historial de un Lead
+Para ver todas las transiciones de un lead:
+
+```
+get_lead_history(leadId="...")
+```
+
+### 12. Ver Métricas del Pipeline
+Para ver estadísticas generales:
+
+```
+get_pipeline_metrics()
+# Retorna: { conversionRate: 15.5, averageDaysPerStage: {...}, topCategories: [...] }
+```
+
+### 13. Ver Reglas de Scoring
+Para entender cómo se calculan los scores:
+
+```
+get_scoring_rules()
+```
+
+### 14. Recalcular Scores
+Si cambian las reglas de scoring:
+
+```
+recalculate_scores()
 ```
 
 ## Ejemplos de Prompts del Usuario
@@ -112,30 +181,39 @@ get_contact_stats()
 1. Verifica conexión con `check_harv3st_status()`
 2. Usa `search_businesses(query="restaurantes en Haedo")`
 3. Presenta los leads importados con sus scores
-4. Sugiere próximos pasos (filtrar, analizar, contactar)
+4. Sugiere próximos pasos (analizar los de mayor score)
 
-### "Buscar negocios para prospectar" (en base de datos existente)
-1. Usa `get_leads` con filtros apropiados
-2. Presenta lista resumida con oportunidades
+### "¿Cómo está el pipeline?" / "Estado de prospección"
+1. Usa `get_pipeline_summary()`
+2. Presenta conteo por etapa
+3. Usa `get_pipeline_metrics()` para métricas adicionales
+
+### "Ver leads para analizar"
+1. Usa `get_leads_by_stage(stage="DISCOVERED", sortBy="score", sortOrder="desc")`
+2. Presenta los top leads con sus scores
 
 ### "Analizar este negocio: [nombre]"
 1. Busca el lead por nombre
-2. Usa `get_lead_detail`
-3. Presenta oportunidades y sugiere acción
+2. Usa `get_lead_detail(leadId="...")`
+3. Presenta score breakdown y oportunidades
+4. Sugiere mover a ANALYZED si corresponde
 
-### "Preparar mensaje para [negocio]"
-1. Obtén detalle del lead
-2. Obtén template apropiado
-3. Personaliza con datos del negocio
-4. Crea registro de contacto en estado "pending"
+### "Enriquecer Instagram de [negocio]"
+1. Usa `enrich_instagram(leadId="...", handle="@negocio")`
+2. Presenta los datos obtenidos
 
-### "Marcar como enviado el mensaje a [negocio]"
-1. Busca el contacto pendiente
-2. Actualiza estado a "sent"
+### "Convertir [negocio] a cliente"
+1. Verifica que esté en RESPONDED
+2. Usa `convert_lead(leadId="...", projectName="...")`
+3. Confirma la conversión
 
-### "¿Cómo vamos con la prospección?"
-1. Usa `get_contact_stats`
-2. Presenta resumen de actividad
+### "Descartar [negocio]"
+1. Usa `move_lead_to_stage(leadId="...", toStage="DISCARDED", reason="...")`
+2. Confirma el descarte
+
+### "Revivir [negocio]"
+1. Usa `revive_lead(leadId="...", reason="...")`
+2. Confirma que volvió a DISCOVERED
 
 ## Configuración Inicial
 

@@ -249,7 +249,7 @@ export interface SearchBusinessesResult {
   status: 'started' | 'completed' | 'error';
   leadsFound: number;
   leadsImported: number;
-  leadsDuplicate: number;
+  leadsUpdated: number;
   leads?: LeadSummary[];
   error?: string;
 }

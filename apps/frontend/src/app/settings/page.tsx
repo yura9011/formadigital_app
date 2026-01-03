@@ -7,6 +7,7 @@ import { NeoInput } from '../../components/neo/NeoInput';
 import { NeoSelect } from '../../components/neo/NeoSelect';
 import GoogleConnectButton from '../../components/google/GoogleConnectButton';
 import * as gmbService from '../../services/gmb.service';
+import { getScoringRules, ScoringConfig, ScoringRule } from '../../services/pipeline.service';
 import toast from 'react-hot-toast';
 import { withAuth } from '../../components/auth/withAuth';
 
@@ -30,6 +31,10 @@ function SettingsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Scoring Rules State
+    const [scoringConfig, setScoringConfig] = useState<ScoringConfig | null>(null);
+    const [loadingScoringRules, setLoadingScoringRules] = useState(true);
+
     // Form State
     const [name, setName] = useState('');
     const [provider, setProvider] = useState('instagram');
@@ -38,10 +43,22 @@ function SettingsPage() {
 
     useEffect(() => {
         fetchData();
+        fetchScoringRules();
         // Load saved user from localStorage
         const saved = localStorage.getItem('currentUserId');
         if (saved) setCurrentUserId(saved);
     }, []);
+
+    const fetchScoringRules = async () => {
+        try {
+            const config = await getScoringRules();
+            setScoringConfig(config);
+        } catch (error) {
+            console.error('Failed to fetch scoring rules:', error);
+        } finally {
+            setLoadingScoringRules(false);
+        }
+    };
 
     const fetchData = async () => {
         try {
@@ -233,6 +250,51 @@ function SettingsPage() {
                             * Por ahora, debes generar el token manualmente en el <a href="https://developers.facebook.com/tools/explorer/" target="_blank" className="underline font-bold text-blue-600">Graph API Explorer</a>.
                         </div>
                     </form>
+                </NeoCard>
+
+                {/* Scoring Rules */}
+                <NeoCard title="📊 Reglas de Scoring">
+                    <div className="space-y-4">
+                        <p className="text-sm text-gray-600">
+                            Estas reglas determinan el puntaje de oportunidad de cada lead. Un mayor puntaje indica mayor potencial de conversión.
+                        </p>
+                        
+                        {loadingScoringRules ? (
+                            <div className="p-4 text-center font-mono">Cargando reglas...</div>
+                        ) : scoringConfig ? (
+                            <>
+                                <div className="flex justify-between items-center p-3 bg-gray-100 border-2 border-neo-border">
+                                    <span className="font-bold">Versión: {scoringConfig.version}</span>
+                                    <span className="text-sm text-gray-500">Max Score: {scoringConfig.maxScore}</span>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    {scoringConfig.rules.map((rule) => (
+                                        <div key={rule.id} className="flex justify-between items-center p-3 border-2 border-neo-border hover:bg-neo-yellow/10">
+                                            <div className="flex-1">
+                                                <p className="font-bold">{rule.name}</p>
+                                                <p className="text-xs text-gray-500">{rule.description}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="px-3 py-1 bg-green-200 font-bold text-sm border border-neo-border">
+                                                    +{rule.weight} pts
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                
+                                <div className="text-xs text-gray-500 mt-4 p-3 bg-blue-50 border border-blue-200">
+                                    💡 Las reglas se aplican automáticamente a cada lead. El puntaje total es la suma de los puntos de las reglas que aplican.
+                                    Para modificar las reglas, edita el archivo <code className="bg-gray-200 px-1">config/scoring-rules.json</code> en el backend.
+                                </div>
+                            </>
+                        ) : (
+                            <div className="p-4 text-center text-gray-500 italic border-2 border-dashed border-gray-300">
+                                No se pudieron cargar las reglas de scoring.
+                            </div>
+                        )}
+                    </div>
                 </NeoCard>
             </div>
         </div>

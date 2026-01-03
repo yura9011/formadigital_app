@@ -1,0 +1,37 @@
+{
+  "templates": [
+    {
+      "id": "email_initial",
+      "name": "Email - Contacto Inicial",
+      "channel": "email",
+      "category": "initial",
+      "subject": "Propuesta para mejorar la presencia online de {{business_name}}",
+      "body": "Hola,\n\nMi nombre es [Tu Nombre] de Forma Digital.\n\nEncontré {{business_name}} en Google Maps y noté que hay oportunidades para mejorar su visibilidad online y atraer más clientes.\n\nEn Forma Digital ayudamos a negocios locales como el suyo a:\n\n• Aparecer en los primeros resultados de Google Maps\n• Gestionar y responder reseñas de clientes\n• Mantener actualizada su información de contacto\n• Publicar contenido atractivo en redes sociales\n\nTenemos planes desde $30.000/mes con resultados comprobados.\n\n¿Le interesaría una llamada de 15 minutos para contarle más?\n\nSaludos cordiales,\n[Tu Nombre]\nForma Digital\nwww.formadigital.info",
+      "variables": ["business_name"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00"
+    },
+    {
+      "id": "email_followup_1",
+      "name": "Email - Follow-up 1",
+      "channel": "email",
+      "category": "followup",
+      "subject": "Re: Propuesta para {{business_name}}",
+      "body": "Hola,\n\nLe escribí hace unos días sobre cómo podemos ayudar a {{business_name}} a mejorar su presencia en Google.\n\n¿Tuvo oportunidad de revisar la propuesta?\n\nQuedo a disposición para cualquier consulta.\n\nSaludos,\n[Tu Nombre]\nForma Digital",
+      "variables": ["business_name"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00"
+    },
+    {
+      "id": "email_final",
+      "name": "Email - Mensaje Final",
+      "channel": "email",
+      "category": "followup",
+      "subject": "Último contacto - {{business_name}}",
+      "body": "Hola,\n\nEste es mi último correo al respecto.\n\nSi en algún momento necesita ayuda con la presencia digital de {{business_name}}, no dude en contactarme.\n\nLe deseo mucho éxito.\n\nSaludos,\n[Tu Nombre]\nForma Digital\nwww.formadigital.info",
+      "variables": ["business_name"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00"
+    }
+  ]
+}

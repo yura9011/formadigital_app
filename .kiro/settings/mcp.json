@@ -4,7 +4,10 @@
       "command": "npx",
       "args": ["tsx", "tools/prospecting-mcp/src/index.ts"],
       "env": {
-        "PROSPECT_API_URL": "http://localhost:3000/api/prospect"
+        "PROSPECT_API_URL": "http://localhost:3000/api/prospect",
+        "PIPELINE_API_URL": "http://localhost:3000/api/pipeline",
+        "SCORING_API_URL": "http://localhost:3000/api/scoring",
+        "ENRICH_API_URL": "http://localhost:3000/api/enrich"
       },
       "disabled": false,
       "autoApprove": [
@@ -20,7 +23,18 @@
         "create_contact_record",
         "update_contact_status",
         "enrich_contact",
-        "set_user_config"
+        "set_user_config",
+        "get_pipeline_summary",
+        "get_leads_by_stage",
+        "move_lead_to_stage",
+        "revive_lead",
+        "convert_lead",
+        "get_lead_history",
+        "get_pipeline_metrics",
+        "get_scoring_rules",
+        "get_score_breakdown",
+        "recalculate_scores",
+        "enrich_instagram"
       ]
     }
   }

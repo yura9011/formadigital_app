@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 2026-01-03
+### Added
+- **Agent V2 - Sistema de Prospección Automatizado**: Pipeline completo de prospección con validación, scoring y outreach.
+  - **PhoneValidatorSkill**: Validación de teléfonos argentinos con generación de links WhatsApp.
+  - **ContactabilityScorer**: Sistema de scoring 0-100 para priorizar leads contactables.
+  - **OutreachQueueManager**: Cola diaria de leads con priorización por score.
+  - **TemplateManager**: Templates de mensajes con variables `{{business_name}}`, `{{location}}`.
+  - **SequenceManager**: Secuencias de follow-up multi-canal (WhatsApp → Instagram → Email).
+  - **CampaignManager**: Gestión de campañas con criterios de segmentación.
+  - **ContactHistoryTracker**: Historial completo de contactos por lead.
+  - **FAQManager**: Respuestas predefinidas para preguntas comunes (pricing, objeciones, etc).
+- **CLI de Outreach**: Interfaz de línea de comandos para gestionar todo el flujo.
+  - `cli_outreach.py queue/next/send/templates/sequences/campaigns/metrics`
+- **Property-Based Testing**: 158 tests con Hypothesis para validar correctness.
+- **Pipeline Integration**: Nuevo módulo de pipeline en backend con stages configurables.
+
+### Technical
+- **New Skills**: `validation.py`, `scoring.py`, `merger.py`, `approval.py`
+- **Outreach Module**: `queue.py`, `templates.py`, `sequences.py`, `senders.py`, `history.py`, `campaigns.py`, `faq_responses.py`
+- **Steering Files**: `lead-validation-workflow.md`, `outreach-workflow.md`
+- **Test Coverage**: 158 tests passing (unit + property-based)
+
+### Database
+- **Nueva migración**: `add_pipeline_fields` - Campos para tracking de pipeline de ventas.
+
 ## [0.9.2] - 2025-12-15
 ### Added
 - **Geolocation Free (OSM)**: Migración completa a OpenStreetMap.

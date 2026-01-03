@@ -1,0 +1,240 @@
+{
+  "faqs": [
+    {
+      "id": "faq_pricing_general",
+      "category": "pricing",
+      "question_patterns": [
+        "cu[aá]nto\\s+(cuesta|sale|cobran|vale)",
+        "precio",
+        "tarifa",
+        "presupuesto"
+      ],
+      "keywords": [
+        "precio",
+        "costo",
+        "cuanto",
+        "cobran",
+        "tarifa",
+        "presupuesto"
+      ],
+      "response_template": "¡Hola! Gracias por preguntar 😊\n\nNuestros servicios se adaptan a cada negocio. Para darte un presupuesto preciso, necesito conocer un poco más sobre tu situación actual.\n\n¿Te parece si agendamos una llamada de 15 minutos para entender mejor tus necesidades? Es sin compromiso.\n\n¿Qué día te viene mejor?",
+      "variables": [],
+      "priority": 10,
+      "active": true,
+      "created_at": "2026-01-03T14:15:24.024843"
+    },
+    {
+      "id": "faq_pricing_specific",
+      "category": "pricing",
+      "question_patterns": [
+        "cu[aá]nto.*web",
+        "precio.*p[aá]gina",
+        "cu[aá]nto.*sitio"
+      ],
+      "keywords": [
+        "precio",
+        "web",
+        "pagina",
+        "sitio"
+      ],
+      "response_template": "¡Hola! Los sitios web arrancan desde ${{precio_base}} dependiendo de las funcionalidades.\n\nIncluye:\n✅ Diseño personalizado\n✅ Optimización para Google\n✅ Versión móvil\n✅ Formulario de contacto\n\n¿Querés que te cuente más detalles?",
+      "variables": [
+        "precio_base"
+      ],
+      "priority": 15,
+      "active": true,
+      "created_at": "2026-01-03T14:15:24.024854"
+    },
+    {
+      "id": "faq_services_what",
+      "category": "services",
+      "question_patterns": [
+        "qu[eé]\\s+(hacen|ofrecen|servicios)",
+        "a\\s+qu[eé]\\s+se\\s+dedican"
+      ],
+      "keywords": [
+        "servicios",
+        "hacen",
+        "ofrecen",
+        "dedican"
+      ],
+      "response_template": "¡Hola! Somos {{nombre_empresa}}, ayudamos a negocios locales a conseguir más clientes por internet.\n\nNuestros servicios principales:\n📱 Presencia en Google Maps\n🌐 Páginas web profesionales\n📸 Gestión de redes sociales\n📈 Publicidad digital\n\n¿Hay algo específico que te interese?",
+      "variables": [
+        "nombre_empresa"
+      ],
+      "priority": 10,
+      "active": true,
+      "created_at": "2026-01-03T14:15:24.024857"
+    },
+    {
+      "id": "faq_process_how",
+      "category": "process",
+      "question_patterns": [
+        "c[oó]mo\\s+(funciona|trabajan|es\\s+el\\s+proceso)",
+        "cu[aá]les\\s+son\\s+los\\s+pasos"
+      ],
+      "keywords": [
+        "como",
+        "funciona",
+        "proceso",
+        "pasos",
+        "trabajan"
+      ],
+      "response_template": "¡Buena pregunta! El proceso es simple:\n\n1️⃣ Llamada inicial (15 min) - Entendemos tu negocio\n2️⃣ Propuesta personalizada - Te enviamos opciones\n3️⃣ Aprobación y arranque - Empezamos a trabajar\n4️⃣ Resultados - Ves el progreso semana a semana\n\n¿Te gustaría agendar la llamada inicial?",
+      "variables": [],
+      "priority": 10,
+      "active": true,
+      "created_at": "2026-01-03T14:15:24.024861"
+    },
+    {
+      "id": "faq_process_time",
+      "category": "process",
+      "question_patterns": [
+        "cu[aá]nto\\s+(tiempo|tarda|demora)",
+        "en\\s+cu[aá]nto\\s+tiempo"
+      ],
+      "keywords": [
+        "tiempo",
+        "tarda",
+        "demora",
+        "cuando",
+        "listo"
+      ],
+      "response_template": "Los tiempos dependen del servicio:\n\n⚡ Google Maps: 1-2 semanas\n🌐 Página web: 2-3 semanas\n📱 Redes sociales: Resultados desde el primer mes\n\n¿Qué servicio te interesa?",
+      "variables": [],
+      "priority": 10,
+      "active": true,
+      "created_at": "2026-01-03T14:15:24.024863"
+    },
+    {
+      "id": "faq_objection_expensive",
+      "category": "objections",
+      "question_patterns": [
+        "(muy\\s+)?caro",
+        "no\\s+tengo\\s+(plata|dinero|presupuesto)",
+        "es\\s+mucho"
+      ],
+      "keywords": [
+        "caro",
+        "costoso",
+        "plata",
+        "dinero",
+        "presupuesto",
+        "mucho"
+      ],
+      "response_template": "Entiendo perfectamente, la inversión es importante.\n\nTe cuento que muchos de nuestros clientes recuperan la inversión en el primer mes con los nuevos clientes que consiguen.\n\n¿Te parece si vemos opciones que se ajusten a tu presupuesto? Tenemos planes flexibles.\n\n¿Cuál sería un monto mensual cómodo para vos?",
+      "variables": [],
+      "priority": 20,
+      "active": true,
+      "created_at": "2026-01-03T14:15:24.024866"
+    },
+    {
+      "id": "faq_objection_think",
+      "category": "objections",
+      "question_patterns": [
+        "lo\\s+(pienso|voy\\s+a\\s+pensar)",
+        "tengo\\s+que\\s+pensarlo",
+        "d[eé]jame\\s+pensar"
+      ],
+      "keywords": [
+        "pensar",
+        "pensarlo",
+        "pienso",
+        "decidir"
+      ],
+      "response_template": "¡Por supuesto! Es una decisión importante.\n\nPara ayudarte a decidir, ¿hay algo específico que te genere dudas? Así puedo darte más información.\n\nTambién te puedo enviar casos de éxito de negocios similares al tuyo si te sirve.\n\n¿Qué te parece?",
+      "variables": [],
+      "priority": 20,
+      "active": true,
+      "created_at": "2026-01-03T14:15:24.024868"
+    },
+    {
+      "id": "faq_objection_not_now",
+      "category": "objections",
+      "question_patterns": [
+        "ahora\\s+no",
+        "m[aá]s\\s+adelante",
+        "no\\s+es\\s+(el\\s+)?momento",
+        "despu[eé]s"
+      ],
+      "keywords": [
+        "ahora",
+        "adelante",
+        "momento",
+        "despues",
+        "luego"
+      ],
+      "response_template": "Entiendo, cada negocio tiene sus tiempos.\n\n¿Te parece si te contacto en {{tiempo_seguimiento}} para ver cómo va todo?\n\nMientras tanto, te dejo mi contacto por si surge algo: {{contacto}}\n\n¡Éxitos! 🙌",
+      "variables": [
+        "tiempo_seguimiento",
+        "contacto"
+      ],
+      "priority": 15,
+      "active": true,
+      "created_at": "2026-01-03T14:15:24.024870"
+    },
+    {
+      "id": "faq_availability_meeting",
+      "category": "availability",
+      "question_patterns": [
+        "(pod[eé]mos|podemos)\\s+(hablar|reunirnos|llamar)",
+        "agenda(r|mos)\\s+(una\\s+)?(llamada|reuni[oó]n)"
+      ],
+      "keywords": [
+        "hablar",
+        "llamar",
+        "reunion",
+        "agendar",
+        "disponibilidad"
+      ],
+      "response_template": "¡Claro que sí! 📞\n\nTengo disponibilidad:\n📅 {{dias_disponibles}}\n🕐 {{horarios_disponibles}}\n\n¿Qué día y horario te viene mejor?",
+      "variables": [
+        "dias_disponibles",
+        "horarios_disponibles"
+      ],
+      "priority": 10,
+      "active": true,
+      "created_at": "2026-01-03T14:15:24.024873"
+    },
+    {
+      "id": "faq_general_greeting",
+      "category": "general",
+      "question_patterns": [
+        "^hola$",
+        "^buenas$",
+        "^buen\\s+d[ií]a$"
+      ],
+      "keywords": [
+        "hola",
+        "buenas",
+        "buen dia"
+      ],
+      "response_template": "¡Hola! 👋 ¿Cómo estás?\n\nSoy de {{nombre_empresa}}. Vi que tenés un negocio en {{ubicacion}} y quería contarte cómo podemos ayudarte a conseguir más clientes.\n\n¿Tenés unos minutos para charlar?",
+      "variables": [
+        "nombre_empresa",
+        "ubicacion"
+      ],
+      "priority": 5,
+      "active": true,
+      "created_at": "2026-01-03T14:15:24.024875"
+    },
+    {
+      "id": "faq_general_thanks",
+      "category": "general",
+      "question_patterns": [
+        "gracias",
+        "muchas\\s+gracias"
+      ],
+      "keywords": [
+        "gracias",
+        "agradezco"
+      ],
+      "response_template": "¡De nada! 😊\n\nCualquier duda que tengas, acá estoy para ayudarte.\n\n¡Que tengas un excelente día! 🙌",
+      "variables": [],
+      "priority": 5,
+      "active": true,
+      "created_at": "2026-01-03T14:15:24.024878"
+    }
+  ],
+  "updated_at": "2026-01-03T14:15:24.024935"
+}

@@ -85,6 +85,14 @@ function Home() {
       primary: true
     },
     {
+      title: 'Pipeline',
+      description: 'Gestiona el pipeline de ventas y convierte leads en clientes.',
+      icon: '📊',
+      href: '/pipeline',
+      color: 'bg-gradient-to-r from-blue-100 to-green-100',
+      primary: true
+    },
+    {
       title: 'Análisis Local',
       description: 'Analiza tu competencia en Google Maps y optimiza tu SEO local.',
       icon: '🗺️',

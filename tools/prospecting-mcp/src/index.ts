@@ -8,10 +8,13 @@ import {
 
 // Configuration
 const API_BASE_URL = process.env.PROSPECT_API_URL || 'http://localhost:3001/api/prospect';
+const PIPELINE_API_URL = process.env.PIPELINE_API_URL || 'http://localhost:3001/api/pipeline';
+const SCORING_API_URL = process.env.SCORING_API_URL || 'http://localhost:3001/api/scoring';
+const ENRICH_API_URL = process.env.ENRICH_API_URL || 'http://localhost:3001/api/enrich';
 
 // Helper function to make API calls
-async function apiCall(endpoint: string, method: string = 'GET', body?: any): Promise<any> {
-  const url = `${API_BASE_URL}${endpoint}`;
+async function apiCall(endpoint: string, method: string = 'GET', body?: any, baseUrl: string = API_BASE_URL): Promise<any> {
+  const url = `${baseUrl}${endpoint}`;
   const options: RequestInit = {
     method,
     headers: {
@@ -245,6 +248,128 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['channel', 'value'],
         },
       },
+      // === PIPELINE TOOLS ===
+      {
+        name: 'get_pipeline_summary',
+        description: 'Get pipeline summary with lead counts per stage (DISCOVERED, ANALYZED, CONTACTED, RESPONDED, CONVERTED, DISCARDED).',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'get_leads_by_stage',
+        description: 'Get leads filtered by pipeline stage with pagination and sorting.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            stage: { type: 'string', enum: ['DISCOVERED', 'ANALYZED', 'CONTACTED', 'RESPONDED', 'CONVERTED', 'DISCARDED'], description: 'Pipeline stage' },
+            page: { type: 'number', description: 'Page number (default 1)' },
+            limit: { type: 'number', description: 'Results per page (default 50)' },
+            sortBy: { type: 'string', enum: ['score', 'createdAt', 'name', 'daysInStage'], description: 'Sort field' },
+            sortOrder: { type: 'string', enum: ['asc', 'desc'], description: 'Sort order' },
+            search: { type: 'string', description: 'Search by name, category, or address' },
+          },
+        },
+      },
+      {
+        name: 'move_lead_to_stage',
+        description: 'Move a lead to a different pipeline stage. Valid transitions: DISCOVERED→ANALYZED→CONTACTED→RESPONDED→CONVERTED, any stage→DISCARDED.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            leadId: { type: 'string', description: 'The lead ID' },
+            toStage: { type: 'string', enum: ['DISCOVERED', 'ANALYZED', 'CONTACTED', 'RESPONDED', 'CONVERTED', 'DISCARDED'], description: 'Target stage' },
+            reason: { type: 'string', description: 'Reason for transition (required for DISCARDED)' },
+          },
+          required: ['leadId', 'toStage'],
+        },
+      },
+      {
+        name: 'revive_lead',
+        description: 'Revive a discarded lead back to DISCOVERED stage.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            leadId: { type: 'string', description: 'The lead ID' },
+            reason: { type: 'string', description: 'Reason for revival' },
+          },
+          required: ['leadId'],
+        },
+      },
+      {
+        name: 'convert_lead',
+        description: 'Convert a lead to a client and create a project. Lead must be in RESPONDED stage.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            leadId: { type: 'string', description: 'The lead ID' },
+            projectName: { type: 'string', description: 'Name for the new project' },
+            projectDetails: { type: 'string', description: 'Optional project details' },
+          },
+          required: ['leadId', 'projectName'],
+        },
+      },
+      {
+        name: 'get_lead_history',
+        description: 'Get the transition history for a lead showing all stage changes.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            leadId: { type: 'string', description: 'The lead ID' },
+          },
+          required: ['leadId'],
+        },
+      },
+      {
+        name: 'get_pipeline_metrics',
+        description: 'Get pipeline metrics including conversion rate, average days per stage, and top categories.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      // === SCORING TOOLS ===
+      {
+        name: 'get_scoring_rules',
+        description: 'Get the current scoring rules configuration.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'get_score_breakdown',
+        description: 'Get detailed score breakdown for a lead showing which rules applied.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            leadId: { type: 'string', description: 'The lead ID' },
+          },
+          required: ['leadId'],
+        },
+      },
+      {
+        name: 'recalculate_scores',
+        description: 'Recalculate scores for all leads using current rules.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      // === ENRICHMENT TOOLS ===
+      {
+        name: 'enrich_instagram',
+        description: 'Enrich a lead with Instagram profile data (followers, posts, last post date, bio).',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            leadId: { type: 'string', description: 'The lead ID' },
+            handle: { type: 'string', description: 'Instagram handle (optional if already stored)' },
+          },
+          required: ['leadId'],
+        },
+      },
     ],
   };
 });
@@ -393,6 +518,85 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           channel: args?.channel,
           value: args?.value,
         });
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      }
+
+      // === PIPELINE TOOLS ===
+      case 'get_pipeline_summary': {
+        const result = await apiCall('/summary', 'GET', undefined, PIPELINE_API_URL);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      }
+
+      case 'get_leads_by_stage': {
+        const params = new URLSearchParams();
+        if (args?.stage) params.append('stage', args.stage as string);
+        if (args?.page) params.append('page', String(args.page));
+        if (args?.limit) params.append('limit', String(args.limit));
+        if (args?.sortBy) params.append('sortBy', args.sortBy as string);
+        if (args?.sortOrder) params.append('sortOrder', args.sortOrder as string);
+        if (args?.search) params.append('search', args.search as string);
+        
+        const result = await apiCall(`/leads?${params.toString()}`, 'GET', undefined, PIPELINE_API_URL);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      }
+
+      case 'move_lead_to_stage': {
+        const result = await apiCall(`/leads/${args?.leadId}/transition`, 'POST', {
+          toStage: args?.toStage,
+          reason: args?.reason,
+          actorType: 'AGENT',
+        }, PIPELINE_API_URL);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      }
+
+      case 'revive_lead': {
+        const result = await apiCall(`/leads/${args?.leadId}/revive`, 'POST', {
+          reason: args?.reason,
+          actorType: 'AGENT',
+        }, PIPELINE_API_URL);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      }
+
+      case 'convert_lead': {
+        const result = await apiCall(`/leads/${args?.leadId}/convert`, 'POST', {
+          projectName: args?.projectName,
+          projectDetails: args?.projectDetails,
+          actorType: 'AGENT',
+        }, PIPELINE_API_URL);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      }
+
+      case 'get_lead_history': {
+        const result = await apiCall(`/leads/${args?.leadId}/history`, 'GET', undefined, PIPELINE_API_URL);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      }
+
+      case 'get_pipeline_metrics': {
+        const result = await apiCall('/metrics', 'GET', undefined, PIPELINE_API_URL);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      }
+
+      // === SCORING TOOLS ===
+      case 'get_scoring_rules': {
+        const result = await apiCall('/rules', 'GET', undefined, SCORING_API_URL);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      }
+
+      case 'get_score_breakdown': {
+        const result = await apiCall(`/breakdown/${args?.leadId}`, 'GET', undefined, SCORING_API_URL);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      }
+
+      case 'recalculate_scores': {
+        const result = await apiCall('/recalculate', 'POST', undefined, SCORING_API_URL);
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      }
+
+      // === ENRICHMENT TOOLS ===
+      case 'enrich_instagram': {
+        const result = await apiCall(`/instagram/${args?.leadId}`, 'POST', {
+          handle: args?.handle,
+        }, ENRICH_API_URL);
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       }
 

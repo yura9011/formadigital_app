@@ -963,7 +963,7 @@ export class ProspectService {
           status: 'started',
           leadsFound: 0,
           leadsImported: 0,
-          leadsDuplicate: 0,
+          leadsUpdated: 0,
         };
       }
 
@@ -1002,7 +1002,7 @@ export class ProspectService {
         status: 'completed',
         leadsFound: harvestedLeads.length,
         leadsImported: importResult.imported,
-        leadsDuplicate: importResult.duplicates,
+        leadsUpdated: importResult.updated,
         leads: importResult.leads,
       };
 
@@ -1013,7 +1013,7 @@ export class ProspectService {
         status: 'error',
         leadsFound: 0,
         leadsImported: 0,
-        leadsDuplicate: 0,
+        leadsUpdated: 0,
         error: error.message,
       };
     }
@@ -1021,13 +1021,14 @@ export class ProspectService {
 
   /**
    * Import harvested leads to database, deduplicating by placeId
+   * Updates existing leads with new data but preserves pipeline stage
    */
   private async importHarvestedLeads(
     harvestedLeads: HarvestedLead[],
     searchQuery: string,
-  ): Promise<{ imported: number; duplicates: number; leads: LeadSummary[] }> {
+  ): Promise<{ imported: number; updated: number; leads: LeadSummary[] }> {
     let imported = 0;
-    let duplicates = 0;
+    let updated = 0;
     const importedLeads: LeadSummary[] = [];
 
     for (const lead of harvestedLeads) {
@@ -1038,7 +1039,50 @@ export class ProspectService {
         });
 
         if (existing) {
-          duplicates++;
+          // Update existing lead with new data but preserve stage and pipeline fields
+          const updatedClient = await this.prisma.client.update({
+            where: { id: existing.id },
+            data: {
+              // Update basic info
+              name: lead.name,
+              address: lead.fullAddress || existing.address,
+              phone: lead.phones || existing.phone,
+              website: this.normalizeWebsite(lead.website) || existing.website,
+              rating: lead.averageRating ?? existing.rating,
+              reviewCount: lead.reviewCount ?? existing.reviewCount,
+              latitude: lead.latitude ?? existing.latitude,
+              longitude: lead.longitude ?? existing.longitude,
+              category: lead.categories || existing.category,
+              googleMapsUri: lead.reviewsUrl?.replace('/reviews', '') || existing.googleMapsUri,
+              // Update extended GMB fields
+              photoCount: lead.photoCount ?? existing.photoCount,
+              priceLevel: this.parsePriceLevel(lead.priceLevel) ?? existing.priceLevel,
+              hours: (lead.hours ?? existing.hours) || undefined,
+              attributes: (lead.attributes ?? existing.attributes) || undefined,
+              reviewsUrl: lead.reviewsUrl || existing.reviewsUrl,
+              // Recalculate score with new data
+              score: this.calculateOpportunityScore(lead),
+              gaps: this.detectGapsFromHarvest(lead),
+              // DO NOT update: stage, discardedAt, convertedAt, revivedAt, type, contactStatus
+            },
+          });
+
+          updated++;
+          importedLeads.push({
+            id: updatedClient.id,
+            name: updatedClient.name,
+            address: updatedClient.address,
+            phone: updatedClient.phone,
+            website: updatedClient.website,
+            instagram: updatedClient.instagram,
+            email: updatedClient.email,
+            rating: updatedClient.rating,
+            reviewCount: updatedClient.reviewCount,
+            opportunityScore: updatedClient.score || 0,
+            categories: updatedClient.category,
+            contactStatus: (updatedClient.contactStatus as ContactStatus) || 'none',
+            availableChannels: this.getAvailableChannels(updatedClient),
+          });
           continue;
         }
 
@@ -1048,7 +1092,7 @@ export class ProspectService {
         // Detect gaps
         const gaps = this.detectGapsFromHarvest(lead);
 
-        // Create new client/lead
+        // Create new client/lead with extended GMB fields
         const client = await this.prisma.client.create({
           data: {
             name: lead.name,
@@ -1064,9 +1108,16 @@ export class ProspectService {
             googleMapsUri: lead.reviewsUrl?.replace('/reviews', '') || null,
             source: 'Harv3st',
             type: 'LEAD',
+            stage: 'DISCOVERED',
             score,
             gaps,
             contactStatus: 'none',
+            // Extended GMB fields
+            photoCount: lead.photoCount,
+            priceLevel: this.parsePriceLevel(lead.priceLevel),
+            hours: lead.hours || undefined,
+            attributes: lead.attributes || undefined,
+            reviewsUrl: lead.reviewsUrl,
           },
         });
 
@@ -1092,8 +1143,8 @@ export class ProspectService {
       }
     }
 
-    this.logger.log(`Imported ${imported} leads, ${duplicates} duplicates skipped`);
-    return { imported, duplicates, leads: importedLeads };
+    this.logger.log(`Imported ${imported} new leads, updated ${updated} existing leads`);
+    return { imported, updated, leads: importedLeads };
   }
 
   /**
@@ -1157,9 +1208,9 @@ export class ProspectService {
     const rating = lead.rating ?? 5;
     const reviewCount = lead.reviewCount ?? 0;
     const photoCount = lead.photoCount ?? 0;
-    const noWebsite = !lead.website || (lead.website && lead.website.includes('search.google.com'));
+    const noWebsite = !lead.website || (lead.website ? lead.website.includes('search.google.com') : false);
 
-    const components = [
+    const components: Array<{ label: string; points: number; applied: boolean }> = [
       {
         label: 'Sin sitio web',
         points: 25,
@@ -1193,7 +1244,7 @@ export class ProspectService {
       {
         label: 'Tiene teléfono',
         points: 5,
-        applied: !!lead.phone,
+        applied: Boolean(lead.phone),
       },
       {
         label: 'Actualmente abierto',
@@ -1254,6 +1305,24 @@ export class ProspectService {
 
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Parse priceLevel from various formats to Int or null
+   * Google Maps returns priceLevel as string like "$20,000-30,000" or number 1-4
+   */
+  private parsePriceLevel(priceLevel: any): number | null {
+    if (priceLevel === null || priceLevel === undefined) return null;
+    if (typeof priceLevel === 'number') return priceLevel;
+    if (typeof priceLevel === 'string') {
+      // Try to extract a number from strings like "$", "$$", "$$$", "$$$$"
+      const dollarCount = (priceLevel.match(/\$/g) || []).length;
+      if (dollarCount > 0 && dollarCount <= 4) return dollarCount;
+      // Try to parse as integer
+      const parsed = parseInt(priceLevel, 10);
+      if (!isNaN(parsed)) return parsed;
+    }
+    return null;
   }
 
   /**

@@ -9,4 +9,37 @@ from .scraper import ScraperSkill
 from .llm import LLMSkill
 from .sync import SyncSkill
 
-__all__ = ["SearchSkill", "ScraperSkill", "LLMSkill", "SyncSkill"]
+# Validation skills (new)
+from .validation import (
+    PhoneValidatorSkill,
+    InstagramFinderSkill,
+    EmailFinderSkill,
+    PhoneValidationResult,
+    InstagramResult,
+    EmailResult,
+)
+from .scoring import ContactabilityScorer, ContactabilityResult
+from .merger import SourceMerger, MergeResult, DataSource, DataConflict
+
+__all__ = [
+    # Original skills
+    "SearchSkill", 
+    "ScraperSkill", 
+    "LLMSkill", 
+    "SyncSkill",
+    # Validation skills
+    "PhoneValidatorSkill",
+    "InstagramFinderSkill", 
+    "EmailFinderSkill",
+    "PhoneValidationResult",
+    "InstagramResult",
+    "EmailResult",
+    # Scoring
+    "ContactabilityScorer",
+    "ContactabilityResult",
+    # Merger
+    "SourceMerger",
+    "MergeResult",
+    "DataSource",
+    "DataConflict",
+]

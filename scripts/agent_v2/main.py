@@ -32,6 +32,8 @@ from skills.search import SearchSkill
 from skills.scraper import ScraperSkill
 from skills.llm import LLMSkill
 from skills.sync import SyncSkill
+from skills.validator import LeadValidator
+from models import Lead
 
 
 # =============================================================================
@@ -60,15 +62,18 @@ class AnalysisOrchestrator:
     Orchestrates the full analysis workflow:
     1. Search (SerpApi) → List of businesses
     2. Scrape + Analyze (parallel) → Enriched data
-    3. Sync → Backend database
+    3. Validate (optional) → Contactability scoring
+    4. Sync → Backend database
     """
     
-    def __init__(self, dry_run: bool = False):
+    def __init__(self, dry_run: bool = False, validate: bool = False):
         self.dry_run = dry_run
+        self.validate = validate
         self.search = SearchSkill()
         self.scraper = ScraperSkill()
         self.llm = LLMSkill()
         self.sync = SyncSkill()
+        self.validator = LeadValidator() if validate else None
         self.logger = logging.getLogger(__name__)
     
     def run(self, query: str, location: str, limit: int = 10) -> dict:
@@ -90,7 +95,12 @@ class AnalysisOrchestrator:
         # Step 2: Enrich each business (parallel)
         enriched = self._enrich_parallel(businesses)
         
-        # Step 3: Sync to backend (unless dry run)
+        # Step 3: Validate (optional)
+        if self.validate and self.validator:
+            self.logger.info("🔍 Running validation...")
+            enriched = self._validate_leads(enriched)
+        
+        # Step 4: Sync to backend (unless dry run)
         if self.dry_run:
             self.logger.info("🔸 DRY RUN - Skipping sync")
             sync_result = {"success": True, "message": "Dry run - not synced"}
@@ -173,6 +183,47 @@ class AnalysisOrchestrator:
             results = list(executor.map(enrich_one, businesses))
         
         return results
+    
+    def _validate_leads(self, businesses: list[dict]) -> list[dict]:
+        """Validate leads and add contactability scores."""
+        validated = []
+        
+        for business in businesses:
+            # Convert to Lead model
+            lead = Lead.from_serpapi(business)
+            
+            # Copy over enriched fields
+            lead.email = business.get("email")
+            lead.instagram_handle = business.get("instagram")
+            
+            # Run validation
+            result = self.validator.validate_lead(lead)
+            
+            if result.success:
+                # Merge validation results back into business dict
+                business.update({
+                    "phone_status": result.lead.phone_status,
+                    "phone_type": result.lead.phone_type,
+                    "normalized_phone": result.lead.normalized_phone,
+                    "whatsapp_link": result.lead.whatsapp_link,
+                    "instagram_status": result.lead.instagram_status,
+                    "instagram_handle": result.lead.instagram_handle,
+                    "instagram_url": result.lead.instagram_url,
+                    "instagram_confidence": result.lead.instagram_confidence,
+                    "email_status": result.lead.email_status,
+                    "contactability_score": result.lead.contactability_score,
+                    "best_channel": result.lead.best_channel,
+                    "validation_status": result.lead.validation_status,
+                    "validation_notes": result.lead.validation_notes,
+                })
+            
+            validated.append(business)
+        
+        # Log summary
+        ready_count = sum(1 for b in validated if b.get("validation_status") == "ready")
+        self.logger.info(f"✅ Validation complete: {ready_count}/{len(validated)} ready to contact")
+        
+        return validated
 
 
     
@@ -221,11 +272,12 @@ def main():
     parser.add_argument("--limit", "-n", type=int, default=10, help="Max results")
     parser.add_argument("--input", "-i", help="Input JSON file for audit mode")
     parser.add_argument("--dry-run", action="store_true", help="Don't sync to backend")
+    parser.add_argument("--validate", "-v", action="store_true", help="Run contactability validation")
     parser.add_argument("--output", "-o", help="Save JSON output to file")
     
     args = parser.parse_args()
     
-    orchestrator = AnalysisOrchestrator(dry_run=args.dry_run)
+    orchestrator = AnalysisOrchestrator(dry_run=args.dry_run, validate=args.validate)
     
     if args.mode == "audit":
         if not args.input:

@@ -1,0 +1,119 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import { PipelineService, LeadsQueryOptions } from './pipeline.service';
+import { TransitionService, TransitionActor } from './transition.service';
+import { ConversionService, ConversionInput } from './conversion.service';
+import { PipelineStage, ActorType } from '@prisma/client';
+
+class TransitionDto {
+  toStage: PipelineStage;
+  reason?: string;
+  actorType?: ActorType;
+  actorId?: string;
+}
+
+class ReviveDto {
+  reason?: string;
+  actorType?: ActorType;
+  actorId?: string;
+}
+
+class ConvertDto {
+  projectName: string;
+  projectDetails?: string;
+  assignedToId?: string;
+  actorType?: ActorType;
+  actorId?: string;
+}
+
+@Controller('api/pipeline')
+export class PipelineController {
+  constructor(
+    private readonly pipelineService: PipelineService,
+    private readonly transitionService: TransitionService,
+    private readonly conversionService: ConversionService,
+  ) {}
+
+  @Get('summary')
+  async getSummary() {
+    return this.pipelineService.getPipelineSummary();
+  }
+
+  @Get('leads')
+  async getLeads(
+    @Query('stage') stage?: PipelineStage,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sortBy') sortBy?: 'score' | 'createdAt' | 'name' | 'daysInStage',
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
+    @Query('search') search?: string,
+  ) {
+    const options: LeadsQueryOptions = {
+      stage,
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? parseInt(limit, 10) : 50,
+      sortBy: sortBy || 'score',
+      sortOrder: sortOrder || 'desc',
+      search,
+    };
+    return this.pipelineService.getLeadsByStage(options);
+  }
+
+  @Get('leads/:id')
+  async getLeadDetail(@Param('id') id: string) {
+    return this.pipelineService.getLeadDetail(id);
+  }
+
+  @Get('leads/:id/history')
+  async getLeadHistory(@Param('id') id: string) {
+    return this.transitionService.getTransitionHistory(id);
+  }
+
+  @Post('leads/:id/transition')
+  @HttpCode(HttpStatus.OK)
+  async transitionLead(@Param('id') id: string, @Body() dto: TransitionDto) {
+    const actor: TransitionActor = {
+      type: dto.actorType || ActorType.USER,
+      id: dto.actorId,
+    };
+    return this.transitionService.executeTransition(id, dto.toStage, actor, dto.reason);
+  }
+
+  @Post('leads/:id/revive')
+  @HttpCode(HttpStatus.OK)
+  async reviveLead(@Param('id') id: string, @Body() dto: ReviveDto) {
+    const actor: TransitionActor = {
+      type: dto.actorType || ActorType.USER,
+      id: dto.actorId,
+    };
+    return this.transitionService.reviveLead(id, actor, dto.reason);
+  }
+
+  @Post('leads/:id/convert')
+  @HttpCode(HttpStatus.OK)
+  async convertLead(@Param('id') id: string, @Body() dto: ConvertDto) {
+    const actor: TransitionActor = {
+      type: dto.actorType || ActorType.USER,
+      id: dto.actorId,
+    };
+    const input: ConversionInput = {
+      projectName: dto.projectName,
+      projectDetails: dto.projectDetails,
+      assignedToId: dto.assignedToId,
+    };
+    return this.conversionService.convertLead(id, input, actor);
+  }
+
+  @Get('metrics')
+  async getMetrics() {
+    return this.pipelineService.getPipelineMetrics();
+  }
+}
