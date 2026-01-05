@@ -2,20 +2,20 @@
 
 A social media scheduling and **Local Business Intelligence** platform built with **NestJS** (Backend), **Next.js** (Frontend), **Harv3st** (Google Maps Scraper), and **Python Agent V2** (AI Analysis).
 
-## 🚀 Key Features
+## Key Features
 
 | Feature | Description |
 |---------|-------------|
-| 📅 **Social Scheduling** | Multi-platform post scheduling (Instagram, Facebook) |
-| 🗺️ **GMB Intelligence** | Local competitor analysis via Map + SerpApi |
-| 🤖 **AI Audit** | Blue Ocean strategy audits powered by Gemini/OpenRouter |
-| 📋 **Leads CRM** | Automatic lead capture from audits with tier scoring |
-| 📊 **PDF Reports** | Exportable audit reports with SWOT, Action Plans |
-| 🔍 **Harv3st Scraper** | Google Maps business scraping with Playwright |
+| **Social Scheduling** | Multi-platform post scheduling (Instagram, Facebook) |
+| **GMB Intelligence** | Local competitor analysis via Map + SerpApi |
+| **AI Audit** | Blue Ocean strategy audits powered by Gemini/OpenRouter |
+| **Leads CRM** | Automatic lead capture from audits with tier scoring |
+| **PDF Reports** | Exportable audit reports with SWOT, Action Plans |
+| **Harv3st Scraper** | Google Maps business scraping with Playwright |
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ```
 forma-digital-app/
@@ -41,7 +41,7 @@ forma-digital-app/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js (v18+)
@@ -104,7 +104,7 @@ stop.bat
 
 ---
 
-## 🔍 Harv3st - Google Maps Scraper
+## Harv3st - Google Maps Scraper
 
 Location: `services/harv3st/`
 
@@ -135,7 +135,7 @@ For more details, see `services/harv3st/README.md`.
 
 ---
 
-## 🗺️ GMB Intelligence Module
+## GMB Intelligence Module
 
 Navigate to `/gmb` to access:
 
@@ -157,7 +157,40 @@ flowchart LR
 
 ---
 
-## 🤖 Python Agent V2
+## Prospecting Workflow v2.0
+
+Navigate to `/gmb/today` for the daily prospecting workflow.
+
+### Routes
+
+| Route | Description |
+|-------|-------------|
+| `/gmb/today` | "Para Hoy" - Leads ready to contact |
+| `/gmb/metrics` | Pipeline dashboard and stats |
+| `/gmb/search` | Original GMB search and audit |
+| `/gmb/leads` | All leads CRM view |
+
+### API Endpoints (Pipeline)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/pipeline/ready-to-contact` | GET | Leads filtered by rating, channels, attempts |
+| `/api/pipeline/leads/:id/snooze` | POST | Snooze a lead until a future date |
+| `/api/pipeline/leads/:id/quick-contact` | POST | Mark as contacted, create record |
+| `/api/pipeline/validate-all-channels` | POST | Batch validate phone/email/instagram |
+
+### Features
+
+- Contact attempt tracking (max 10)
+- Snooze system with reason
+- Channel validation (WhatsApp, Instagram, Email)
+- WhatsApp Web link generation
+- Configurable message templates via localStorage
+- Error handling with visual feedback
+
+---
+
+## Python Agent V2
 
 Location: `scripts/agent_v2/`
 
@@ -182,7 +215,7 @@ BACKEND_URL=http://localhost:3001
 
 ---
 
-## 📋 Leads CRM
+## Leads CRM
 
 Navigate to `/gmb/leads` to:
 - View all saved leads/clients
@@ -192,7 +225,7 @@ Navigate to `/gmb/leads` to:
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Backend (Jest)
@@ -204,7 +237,7 @@ cd scripts/agent_v2 && python -m pytest tests/ -v
 
 ---
 
-## 📁 Agent Personas
+## Agent Personas
 
 AI behavior is defined in `.github/agents/`:
 
