@@ -51,7 +51,7 @@ export class PipelineService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly scoringService: ScoringService,
-  ) {}
+  ) { }
 
   /**
    * Get pipeline summary with counts per stage
@@ -101,7 +101,7 @@ export class PipelineService {
     } = options;
 
     const where: any = {};
-    
+
     if (stage) {
       if (stage === PipelineStage.CONVERTED) {
         where.type = 'CLIENT';
@@ -239,8 +239,8 @@ export class PipelineService {
     ]);
 
     // Calculate conversion rate
-    const conversionRate = totalLeads > 0 
-      ? (totalConverted / (totalLeads + totalConverted)) * 100 
+    const conversionRate = totalLeads > 0
+      ? (totalConverted / (totalLeads + totalConverted)) * 100
       : 0;
 
     // Calculate average days per stage (simplified)
@@ -291,7 +291,7 @@ export class PipelineService {
       for (let i = 0; i < clientTransitions.length; i++) {
         const current = clientTransitions[i];
         const next = clientTransitions[i + 1];
-        
+
         if (next) {
           const durationMs = next.createdAt.getTime() - current.createdAt.getTime();
           const durationDays = durationMs / (1000 * 60 * 60 * 24);
@@ -319,5 +319,202 @@ export class PipelineService {
     }
 
     return averages;
+  }
+
+  /**
+   * Get leads ready to contact today (Prospecting v2.0)
+   * Criteria:
+   * - Stage: DISCOVERED or ANALYZED
+   * - contactAttempts < 10
+   * - Not snoozed or snooze expired
+   * - Has valid contact channel (whatsapp OR instagram OR email)
+   * - Rating >= 4.0
+   * - In Buenos Aires zone
+   */
+  async getReadyToContact(limit: number = 20): Promise<LeadWithDaysInStage[]> {
+    const now = new Date();
+
+    const leads = await this.prisma.client.findMany({
+      where: {
+        type: 'LEAD',
+        stage: { in: [PipelineStage.DISCOVERED, PipelineStage.ANALYZED] },
+        contactAttempts: { lt: 10 },
+        OR: [
+          { snoozedUntil: null },
+          { snoozedUntil: { lte: now } },
+        ],
+        AND: [
+          {
+            OR: [
+              { hasValidWhatsapp: true },
+              { hasValidInstagram: true },
+              { hasValidEmail: true },
+              // Fallback: has phone or instagram field
+              { phone: { not: null } },
+              { instagram: { not: null } },
+            ],
+          },
+          { rating: { gte: 4.0 } },
+          // Note: Removed zone filter - each installation is local
+        ],
+      },
+      orderBy: { score: 'desc' },
+      take: limit,
+    });
+
+    return leads.map((lead) => ({
+      ...lead,
+      daysInStage: this.calculateDaysInStage(lead),
+    }));
+  }
+
+  /**
+   * Snooze a lead until a future date
+   */
+  async snoozeLead(clientId: string, until: Date, reason?: string): Promise<Client> {
+    const client = await this.prisma.client.findUnique({
+      where: { id: clientId },
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Lead not found: ${clientId}`);
+    }
+
+    return this.prisma.client.update({
+      where: { id: clientId },
+      data: {
+        snoozedUntil: until,
+        snoozeReason: reason || null,
+      },
+    });
+  }
+
+  /**
+   * Quick contact: transition to CONTACTED and create contact record in one action
+   */
+  async quickContact(
+    clientId: string,
+    channel: string,
+    message: string,
+    userId?: string,
+  ): Promise<{ client: Client; contactRecord: any }> {
+    const client = await this.prisma.client.findUnique({
+      where: { id: clientId },
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Lead not found: ${clientId}`);
+    }
+
+    // Execute in transaction
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 1. If DISCOVERED, move to ANALYZED first
+      if (client.stage === PipelineStage.DISCOVERED) {
+        await tx.stageTransition.create({
+          data: {
+            clientId,
+            fromStage: PipelineStage.DISCOVERED,
+            toStage: PipelineStage.ANALYZED,
+            actorType: 'USER',
+            actorId: userId,
+          },
+        });
+      }
+
+      // 2. Move to CONTACTED
+      await tx.stageTransition.create({
+        data: {
+          clientId,
+          fromStage: client.stage === PipelineStage.DISCOVERED
+            ? PipelineStage.ANALYZED
+            : client.stage,
+          toStage: PipelineStage.CONTACTED,
+          actorType: 'USER',
+          actorId: userId,
+        },
+      });
+
+      // 3. Create contact record
+      const contactRecord = await tx.contactRecord.create({
+        data: {
+          clientId,
+          channel,
+          message,
+          status: 'sent',
+          sentAt: new Date(),
+          userId,
+        },
+      });
+
+      // 4. Update client
+      const updatedClient = await tx.client.update({
+        where: { id: clientId },
+        data: {
+          stage: PipelineStage.CONTACTED,
+          contactStatus: 'sent',
+          lastContactedAt: new Date(),
+          contactAttempts: { increment: 1 },
+          // Clear snooze when contacted
+          snoozedUntil: null,
+          snoozeReason: null,
+        },
+      });
+
+      return { client: updatedClient, contactRecord };
+    });
+
+    this.logger.log(`Quick contact completed for ${clientId} via ${channel}`);
+    return result;
+  }
+
+  /**
+   * Validate and update contact channels for a lead
+   */
+  async validateContactChannels(clientId: string): Promise<Client> {
+    const client = await this.prisma.client.findUnique({
+      where: { id: clientId },
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Lead not found: ${clientId}`);
+    }
+
+    // Validate WhatsApp (Argentine mobile format)
+    const hasValidWhatsapp = client.phone
+      ? /^(011|11|15|\+54)[\s-]?\d{4}[\s-]?\d{4}$/.test(client.phone.replace(/\s/g, ''))
+      : false;
+
+    // Validate Instagram
+    const hasValidInstagram = !!client.instagram && client.instagram.length > 0;
+
+    // Validate Email
+    const hasValidEmail = !!client.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(client.email);
+
+    return this.prisma.client.update({
+      where: { id: clientId },
+      data: {
+        hasValidWhatsapp,
+        hasValidInstagram,
+        hasValidEmail,
+      },
+    });
+  }
+
+  /**
+   * Batch validate contact channels for all leads
+   */
+  async validateAllContactChannels(): Promise<{ updated: number }> {
+    const leads = await this.prisma.client.findMany({
+      where: { type: 'LEAD' },
+    });
+
+    let updated = 0;
+    for (const lead of leads) {
+      await this.validateContactChannels(lead.id);
+      updated++;
+    }
+
+    this.logger.log(`Validated contact channels for ${updated} leads`);
+    return { updated };
   }
 }

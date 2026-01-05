@@ -118,6 +118,40 @@ def extract_business_data(item):
         # Service Attributes: Delivery, pickup, accessibility, etc.
         attrs_raw = get_nested(item, 100, 0)
         attributes = parse_attributes(attrs_raw)
+        
+        # === SOCIAL MEDIA EXTRACTION (v2.0) ===
+        instagram = None
+        
+        # Method 1: Check if website is actually an Instagram link
+        if website and 'instagram.com' in str(website).lower():
+            # Extract username from URL
+            import re
+            match = re.search(r'instagram\.com/([^/?#]+)', str(website))
+            if match:
+                instagram = match.group(1)
+                website = None  # Clear website since it was IG
+        
+        # Method 2: Check description/additional fields for @username
+        description = get_nested(item, 32, 0) or get_nested(item, 32, 1, 0) or ""
+        if not instagram and description:
+            import re
+            # Look for @username patterns
+            match = re.search(r'@([a-zA-Z0-9._]+)', str(description))
+            if match:
+                instagram = match.group(1)
+        
+        # Method 3: Check social profile links array (position varies)
+        social_links = get_nested(item, 175) or get_nested(item, 176) or []
+        if not instagram and isinstance(social_links, list):
+            for link in social_links:
+                if isinstance(link, (list, str)):
+                    link_str = str(link)
+                    if 'instagram.com' in link_str.lower():
+                        import re
+                        match = re.search(r'instagram\.com/([^/?#\]"\']+)', link_str)
+                        if match:
+                            instagram = match.group(1)
+                            break
 
         # === BUILD DATA OBJECT ===
         data = {
@@ -127,6 +161,7 @@ def extract_business_data(item):
             "reviewCount": get_nested(item, 4, 8),
             "phones": phone,
             "website": website,
+            "instagram": instagram,  # NEW: Instagram handle
             "latitude": lat,
             "longitude": lng,
             "categories": categories,

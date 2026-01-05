@@ -1,0 +1,23 @@
+2026-01-03 20:31:43,268 - INFO - ✅ Módulo de IA (llm_extractor) importado correctamente.
+2026-01-03 20:31:43,438 - INFO - ==================================================
+2026-01-03 20:31:43,440 - INFO - 🚀 INICIANDO DEEP DISCOVERY CON ENRIQUECIMIENTO WEB
+2026-01-03 20:31:43,441 - INFO - ==================================================
+2026-01-03 20:31:47,718 - INFO - 🔎 Iniciando: 'kiosco' en 'Liniers, Buenos Aires'
+2026-01-03 20:31:52,991 - INFO - 📋 Encontrados 20. Procesando 5...
+2026-01-03 20:31:53,072 - INFO - 👉 Click en resultado 1/5
+2026-01-03 20:32:05,590 - ERROR - ❌ Error llamando a Ollama LLM: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002690F1DA510>: Failed to establish a new connection: [WinError 10061] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión'))
+2026-01-03 20:32:05,593 - INFO - 📍 Lead: Arlequin Kiosco 24 HS
+2026-01-03 20:32:05,636 - INFO - 👉 Click en resultado 2/5
+2026-01-03 20:32:13,214 - ERROR - ❌ Error llamando a Ollama LLM: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002690EF7A350>: Failed to establish a new connection: [WinError 10061] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión'))
+2026-01-03 20:32:13,215 - WARNING - ⚠️ Duplicado detectado: Arlequin Kiosco 24 HS
+2026-01-03 20:32:13,238 - INFO - 👉 Click en resultado 3/5
+2026-01-03 20:32:15,890 - INFO - 📍 Lead: TODO SABOR I
+2026-01-03 20:32:15,930 - INFO - 👉 Click en resultado 4/5
+2026-01-03 20:32:19,208 - WARNING - ⚠️ Duplicado detectado: TODO SABOR I
+2026-01-03 20:32:19,300 - INFO - 👉 Click en resultado 5/5
+2026-01-03 20:32:28,061 - ERROR - ❌ Error llamando a Ollama LLM: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002690EF7B390>: Failed to establish a new connection: [WinError 10061] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión'))
+2026-01-03 20:32:28,062 - INFO - 📍 Lead: Dulce Ramos
+2026-01-03 20:32:29,666 - INFO - ✨ Reporte generado: prospecting_results\report_20260103_2032.html
+2026-01-03 20:32:29,671 - INFO - ==================================================
+2026-01-03 20:32:29,675 - INFO - ✅ PROCESO FINALIZADO
+2026-01-03 20:32:29,678 - INFO - 📂 Ver resultados en: D:\tareas\exp003 - postix\forma-digital-app\scripts\prospecting_results

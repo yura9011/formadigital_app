@@ -67,8 +67,7 @@ except ImportError:
 # ============================================
 
 SEARCH_TASKS = [
-    {"keyword": "restaurant", "location": "Palermo, Buenos Aires"},
-    # {"keyword": "agencia de marketing", "location": "Buenos Aires"}, 
+    {"keyword": "kiosco", "location": "Liniers, Buenos Aires"},
 ]
 
 CONFIG = {

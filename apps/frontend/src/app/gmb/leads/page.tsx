@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { api } from '@/config/api';
 
 interface Client {
     id: string;
@@ -34,7 +35,7 @@ export default function LeadsPage() {
 
     const fetchClients = async () => {
         try {
-            const res = await fetch('http://localhost:3001/gmb/leads');
+            const res = await fetch(api.gmb.leads());
             if (res.ok) {
                 const data = await res.json();
                 setClients(data);

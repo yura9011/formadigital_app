@@ -1,0 +1,73 @@
+﻿[
+    {
+        "id":  "98b6bfe6-420e-4850-8927-03568a571a75",
+        "name":  "Veterinaria Dra. Carrizo",
+        "phone":  "011 2187-1625",
+        "rating":  4.7,
+        "reviewCount":  207,
+        "score":  55,
+        "gaps":  [
+                     "Sin sitio web",
+                     "Pocas fotos"
+                 ],
+        "website":  null,
+        "category":  "Veterinario, Farmacia veterinaria",
+        "address":  "Bolívar 702, B1704 Ramos Mejía, Provincia de Buenos Aires"
+    },
+    {
+        "id":  "0ca9d4e5-1352-43c2-8b9c-2f1c3bba8842",
+        "name":  "Complejo Boxxu",
+        "phone":  "011 3660-0661",
+        "rating":  4.6,
+        "reviewCount":  298,
+        "score":  45,
+        "gaps":  [
+                     "Sin sitio web"
+                 ],
+        "website":  null,
+        "category":  "Gimnasio, Club de pádel, Campo de hockey, Pista de pádel, Club de fútbol, Campo de vóleibol",
+        "address":  "Córdoba 901, B1708CUK Morón, Provincia de Buenos Aires"
+    },
+    {
+        "id":  "02881848-3497-42a9-9642-b897a254acc8",
+        "name":  "Pizza Oliva",
+        "phone":  "011 4469-1325",
+        "rating":  4.2,
+        "reviewCount":  479,
+        "score":  45,
+        "gaps":  [
+                     "Sin sitio web"
+                 ],
+        "website":  null,
+        "category":  "Pizzería",
+        "address":  "Gral. Ricchieri 233, B1704EBE Ramos Mejía, Provincia de Buenos Aires"
+    },
+    {
+        "id":  "579b2e96-00f1-4ec5-ac60-bf8c7724b213",
+        "name":  "Los Hornos",
+        "phone":  "011 4460-5344",
+        "rating":  4.3,
+        "reviewCount":  385,
+        "score":  45,
+        "gaps":  [
+                     "Sin sitio web"
+                 ],
+        "website":  null,
+        "category":  "Pizzería",
+        "address":  "B1706 Haedo, Provincia de Buenos Aires"
+    },
+    {
+        "id":  "90324651-cd63-4d84-8aba-67e435f2198d",
+        "name":  "Hola Piedra Libre - Ramos Mejia",
+        "phone":  "011 4656-9155",
+        "rating":  4.1,
+        "reviewCount":  408,
+        "score":  45,
+        "gaps":  [
+                     "Sin sitio web"
+                 ],
+        "website":  null,
+        "category":  "Pizzería",
+        "address":  "Av. de Mayo 1804, B1704BVS Ramos Mejía, Provincia de Buenos Aires"
+    }
+]

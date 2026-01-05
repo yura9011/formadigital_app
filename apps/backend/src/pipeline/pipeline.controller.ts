@@ -40,7 +40,7 @@ export class PipelineController {
     private readonly pipelineService: PipelineService,
     private readonly transitionService: TransitionService,
     private readonly conversionService: ConversionService,
-  ) {}
+  ) { }
 
   @Get('summary')
   async getSummary() {
@@ -115,5 +115,44 @@ export class PipelineController {
   @Get('metrics')
   async getMetrics() {
     return this.pipelineService.getPipelineMetrics();
+  }
+
+  // === Prospecting v2.0 Endpoints ===
+
+  @Get('ready-to-contact')
+  async getReadyToContact(@Query('limit') limit?: string) {
+    const leadLimit = limit ? parseInt(limit, 10) : 20;
+    return this.pipelineService.getReadyToContact(leadLimit);
+  }
+
+  @Post('leads/:id/snooze')
+  @HttpCode(HttpStatus.OK)
+  async snoozeLead(
+    @Param('id') id: string,
+    @Body() body: { until: string; reason?: string },
+  ) {
+    const untilDate = new Date(body.until);
+    return this.pipelineService.snoozeLead(id, untilDate, body.reason);
+  }
+
+  @Post('leads/:id/quick-contact')
+  @HttpCode(HttpStatus.OK)
+  async quickContact(
+    @Param('id') id: string,
+    @Body() body: { channel: string; message: string; userId?: string },
+  ) {
+    return this.pipelineService.quickContact(id, body.channel, body.message, body.userId);
+  }
+
+  @Post('leads/:id/validate-channels')
+  @HttpCode(HttpStatus.OK)
+  async validateChannels(@Param('id') id: string) {
+    return this.pipelineService.validateContactChannels(id);
+  }
+
+  @Post('validate-all-channels')
+  @HttpCode(HttpStatus.OK)
+  async validateAllChannels() {
+    return this.pipelineService.validateAllContactChannels();
   }
 }

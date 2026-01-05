@@ -55,7 +55,7 @@ export class ProspectService {
   constructor(
     private prisma: PrismaService,
     private enrichmentService: EnrichmentService,
-  ) {}
+  ) { }
 
   // ==================== LEAD METHODS ====================
 
@@ -404,7 +404,7 @@ export class ProspectService {
       }
     }
 
-    const contacts = await this.prisma.contactRecord.findMany({ 
+    const contacts = await this.prisma.contactRecord.findMany({
       where,
       include: { client: true },
       orderBy: { createdAt: 'desc' },
@@ -854,12 +854,12 @@ export class ProspectService {
       if (Object.keys(updateData).length > 0) {
         updateData.enrichedAt = new Date();
         updateData.source = 'Playwright';
-        
+
         await this.prisma.client.update({
           where: { id: leadId },
           data: updateData,
         });
-        
+
         this.logger.log(`Updated client ${leadId} with enriched data: ${JSON.stringify(updateData)}`);
       }
 
@@ -979,7 +979,7 @@ export class ProspectService {
           const status = await statusResponse.json();
           // Check if our query is still running
           const activeTasks = status.active_tasks || [];
-          isComplete = !activeTasks.some((task: string) => 
+          isComplete = !activeTasks.some((task: string) =>
             task.toLowerCase().includes(query.toLowerCase().split(' ')[0])
           );
         }
@@ -1092,6 +1092,13 @@ export class ProspectService {
         // Detect gaps
         const gaps = this.detectGapsFromHarvest(lead);
 
+        // Calculate contact channel validity (Prospecting v2.0)
+        const hasValidWhatsapp = lead.phones
+          ? /^(011|11|15|\+54)[\s-]?\d{4}[\s-]?\d{4}$/.test(lead.phones.replace(/\s/g, ''))
+          : false;
+        const hasValidInstagram = !!(lead as any).instagram && (lead as any).instagram.length > 0;
+        const hasValidEmail = false; // Email needs enrichment
+
         // Create new client/lead with extended GMB fields
         const client = await this.prisma.client.create({
           data: {
@@ -1099,6 +1106,7 @@ export class ProspectService {
             address: lead.fullAddress || '',
             phone: lead.phones,
             website: this.normalizeWebsite(lead.website),
+            instagram: (lead as any).instagram || null, // From Harv3st IG extraction
             rating: lead.averageRating,
             reviewCount: lead.reviewCount,
             latitude: lead.latitude,
@@ -1118,6 +1126,10 @@ export class ProspectService {
             hours: lead.hours || undefined,
             attributes: lead.attributes || undefined,
             reviewsUrl: lead.reviewsUrl,
+            // Prospecting v2.0 - auto-validated channels
+            hasValidWhatsapp,
+            hasValidInstagram,
+            hasValidEmail,
           },
         });
 

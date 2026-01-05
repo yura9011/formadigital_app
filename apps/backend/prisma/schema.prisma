@@ -177,6 +177,14 @@ model Client {
   contactStatus   String?   @default("none")  // none, pending, approved, sent, rejected, responded
   lastContactedAt DateTime?                   // Last time this client was contacted
 
+  // === Prospecting v2.0 Fields ===
+  contactAttempts   Int       @default(0)    // Counter for contact attempts (max 10)
+  snoozedUntil      DateTime?                // Skip until this date
+  snoozeReason      String?                  // Why snoozed (e.g. "Dijo contactar en 3 meses")
+  hasValidWhatsapp  Boolean   @default(false) // Phone is valid for WhatsApp
+  hasValidInstagram Boolean   @default(false) // Has Instagram handle
+  hasValidEmail     Boolean   @default(false) // Has email address
+
   // Relations for prospecting
   contacts        ContactRecord[]
   transitions     StageTransition[]
