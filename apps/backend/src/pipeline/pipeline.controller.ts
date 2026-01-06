@@ -155,4 +155,14 @@ export class PipelineController {
   async validateAllChannels() {
     return this.pipelineService.validateAllContactChannels();
   }
+
+  @Post('leads/:id/register-contact')
+  @HttpCode(HttpStatus.OK)
+  async registerManualContact(
+    @Param('id') id: string,
+    @Body() body: { channel: string; contactedAt?: string; notes?: string },
+  ) {
+    const contactedAt = body.contactedAt ? new Date(body.contactedAt) : new Date();
+    return this.pipelineService.registerManualContact(id, body.channel, contactedAt, body.notes);
+  }
 }

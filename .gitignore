@@ -48,3 +48,22 @@ venv/
 
 # Harv3st data (local scraping results)
 services/harv3st/data/
+
+# Archive (old files, backups)
+.archive/
+
+# Prospecting outputs (temporary)
+lead_audit.json
+leads_to_enrich.txt
+test_lead_id.txt
+top5_*.json
+top5_*.txt
+
+# Agent V2 results (local runs)
+scripts/agent_v2/results*.json
+scripts/agent_v2/final_test.json
+
+# Generated reports (local)
+prospecting_results/*.html
+prospecting_results/*.csv
+

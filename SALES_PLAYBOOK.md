@@ -103,3 +103,25 @@ Usá los datos duros para contactar. No digas "hacemos marketing". Decí:
 
 **Acción:**
 Llamar/Escribir felicitándolos por el 4.8 de rating (abrir puerta) y ofrecer revivir el Instagram para mostrar ese amor de los clientes (venta).
+
+---
+
+## 🧠 Insights de Campo (Enero 2026)
+
+Lecciones aprendidas en sesiones de prospección reales (Zona Oeste):
+
+### 1. El Fenómeno "Pency/Linktree"
+Muchos negocios tienen un link en el campo "Website" que lleva a un menú digital (Pency, OlaClick) o un árbol de links.
+*   **El Gap:** No tienen identidad propia, ni SEO, ni pixel de conversión.
+*   **El Pitch:** "Pency es útil, pero **tu propia web .com** te da autoridad de marca y te permite captar clientes sin comisiones futuras. Diferenciate del que recién arranca."
+
+### 2. La Trampa del "Instagram Loop"
+Negocios exitosos (500+ reviews) cuyo botón "Sitio Web" en Google Maps te redirige... ¡a su Instagram!
+*   **El Problema:** El usuario quiere ver precio/menú, no scrollear fotos viejas.
+*   **El Pitch:** "Tenés 500 reviews excelentes, pero cuando clickeo 'Sitio Web' me tirás de vuelta a Instagram. Estás perdiendo al cliente que quiere comprar YA. Armemos un menú directo."
+
+### 3. La Web Caída (Error Técnico)
+El gancho técnico más fuerte. Cuando un negocio tiene su dominio pero da error al entrar.
+*   **El Pitch:** (Tono de alerta técnica) "Hola, te aviso por las dudas: quise entrar a tu web [dominio.com] y me da error de servidor/SSL. ¿Están al tanto?"
+*   *Nota:* Esto genera respuesta casi inmediata por preocupación. Luego se ofrece la solución.
+

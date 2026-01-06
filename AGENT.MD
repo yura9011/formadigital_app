@@ -30,27 +30,36 @@
 -   **AI**: Google Generative AI (Gemini Flash).
 -   **File Storage**: Local uploads (Multer).
 
-## 3. Directory Structure
+## 3. Agent Entry Points
+
+> [!TIP]
+> **¿Sos un agente de IA nuevo?** Lee en este orden:
+> 1. [`.agent/context.md`](./.agent/context.md) → Estado actual del proyecto
+> 2. [`.agent/sessions/`](./.agent/sessions/) → Última sesión de trabajo
+> 3. [`SALES_PLAYBOOK.md`](./SALES_PLAYBOOK.md) → Para tareas de ventas
+> 4. [`.github/agents/`](./.github/agents/) → Para tareas técnicas
+
+### Workflows Disponibles
+- `/run-prospecting` → Ejecutar sesión de prospección
+- `/contact-lead` → Preparar mensaje para lead
+
+### Directory Structure
 
 ```
-d:/tareas/exp003 - postix/forma-digital-app/
-├── .github/
-│   └── agents/         # AI Agent Definition Files
-│       ├── docs-agent.md   # Technical Writer
-│       ├── test-agent.md   # QA Engineer
-│       └── api-agent.md    # Backend Specialist
+forma-digital-app/
+├── .agent/             # 🤖 Agent Configuration
+│   ├── context.md      # Estado actual del proyecto
+│   ├── mcp-setup.md    # Cómo conectar MCP Server
+│   ├── sessions/       # Logs de sesiones
+│   ├── workflows/      # Workflows ejecutables
+│   └── specs/          # Especificaciones técnicas
+├── .github/agents/     # Definiciones de agentes especializados (6)
 ├── apps/
-│   ├── frontend/       # Next.js Application
-│   │   ├── src/app/    # App Router Pages (Projects, GMB, Settings, etc.)
-│   │   ├── src/components/ # Neo-UI Components
-│   │   └── src/types/  # TypeScript Declarations
-│   └── backend/        # NestJS Application
-│       ├── src/gmb/    # GMB Logic (Service/Controller)
-│       └── prisma/     # Database Schema
-├── docs/               # Documentation
-├── tools/              # Utility scripts
-├── dev.bat             # Start Development Environment (Frontend + Backend)
-└── host_mode.bat       # Start in Host Mode (Public Access)
+│   ├── frontend/       # Next.js 16 (App Router)
+│   └── backend/        # NestJS 11 + Prisma
+├── scripts/agent_v2/   # Python Agent (Scraper, Outreach)
+├── AGENT.MD            # Este archivo
+└── SALES_PLAYBOOK.md   # Manual de ventas
 ```
 
 ## 4. Key Functional Areas

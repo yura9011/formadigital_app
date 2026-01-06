@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PipelineStage, Client } from '@prisma/client';
 import { ScoringService, ScoreBreakdown } from './scoring.service';
@@ -517,4 +517,95 @@ export class PipelineService {
     this.logger.log(`Validated contact channels for ${updated} leads`);
     return { updated };
   }
+
+  /**
+   * Register a manual/retroactive contact (Prospecting v2.0)
+   * Used when contact was made outside the app
+   */
+  async registerManualContact(
+    clientId: string,
+    channel: string,
+    contactedAt: Date,
+    notes?: string,
+  ): Promise<{ client: Client; contactRecord: any; warning?: string }> {
+    const client = await this.prisma.client.findUnique({
+      where: { id: clientId },
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Lead not found: ${clientId}`);
+    }
+
+    // Validate: date not in future
+    const now = new Date();
+    if (contactedAt > now) {
+      throw new BadRequestException('Contact date cannot be in the future');
+    }
+
+    // Validate: no duplicate in last 24h for same channel
+    const oneDayAgo = new Date(contactedAt.getTime() - 24 * 60 * 60 * 1000);
+    const existingContact = await this.prisma.contactRecord.findFirst({
+      where: {
+        clientId,
+        channel,
+        sentAt: {
+          gte: oneDayAgo,
+          lte: new Date(contactedAt.getTime() + 24 * 60 * 60 * 1000),
+        },
+      },
+    });
+
+    if (existingContact) {
+      throw new BadRequestException(
+        `Already registered a ${channel} contact within 24 hours of this date`,
+      );
+    }
+
+    // Check for warning (channel without data)
+    let warning: string | undefined;
+    if (channel === 'whatsapp' && !client.phone) {
+      warning = 'Lead does not have a phone number registered';
+    } else if (channel === 'instagram' && !client.instagram) {
+      warning = 'Lead does not have an Instagram handle registered';
+    } else if (channel === 'email' && !client.email) {
+      warning = 'Lead does not have an email registered';
+    }
+
+    // Create contact record
+    const contactRecord = await this.prisma.contactRecord.create({
+      data: {
+        clientId,
+        channel,
+        message: notes || 'Contacto manual registrado',
+        sentAt: contactedAt,
+      },
+    });
+
+    // Determine new stage (only upgrade, never downgrade)
+    let newStage = client.stage;
+    if (client.stage === 'DISCOVERED' || client.stage === 'ANALYZED') {
+      newStage = PipelineStage.CONTACTED;
+    }
+    // If already CONTACTED, RESPONDED, CONVERTED, or DISCARDED, keep current stage
+
+    // Update client
+    const updatedClient = await this.prisma.client.update({
+      where: { id: clientId },
+      data: {
+        stage: newStage,
+        lastContactedAt: contactedAt,
+        contactAttempts: { increment: 1 },
+        // Clear snooze since we're contacting
+        snoozedUntil: null,
+        snoozeReason: null,
+      },
+    });
+
+    this.logger.log(
+      `Registered manual contact for ${client.name} via ${channel} on ${contactedAt.toISOString()}`,
+    );
+
+    return { client: updatedClient, contactRecord, warning };
+  }
 }
+

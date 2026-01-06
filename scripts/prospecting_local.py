@@ -67,11 +67,13 @@ except ImportError:
 # ============================================
 
 SEARCH_TASKS = [
-    {"keyword": "kiosco", "location": "Liniers, Buenos Aires"},
+    {"keyword": "Pizzeria", "location": "Ramos Mejia, Buenos Aires"},
+    {"keyword": "Pizzeria", "location": "Haedo, Buenos Aires"},
+    {"keyword": "Restaurante", "location": "Castelar, Buenos Aires"},
 ]
 
 CONFIG = {
-    "max_results_per_search": 5,
+    "max_results_per_search": 10,
     "headless": False,       
     "slow_mo": 500,          
     "deep_scroll": True,     
@@ -323,18 +325,32 @@ async def extract_business_details(page) -> dict:
         elif await main.locator('h1').count() > 0:
             b["name"] = await main.locator('h1').first.inner_text()
             
-        # Rating y Reviews
-        rating_el = main.locator('div[role="img"][aria-label*="estrella"]').first
+        # Rating y Reviews - Multi-idioma (es: estrella/reseña, en: star/review)
+        # Método 1: Selectores con aria-label
+        rating_el = main.locator('div[role="img"][aria-label*="estrella"], div[role="img"][aria-label*="star"]').first
         if await rating_el.count() > 0:
             val = await rating_el.get_attribute("aria-label")
             match = re.search(r'([\d,\.]+)', val)
             if match: b["rating"] = float(match.group(1).replace(",", "."))
             
-        reviews_el = main.locator('button[aria-label*="reseña"]').first
+        reviews_el = main.locator('button[aria-label*="reseña"], button[aria-label*="review"]').first
         if await reviews_el.count() > 0:
             val = await reviews_el.get_attribute("aria-label")
             match = re.search(r'([\d\.]+)', val.replace(".","").replace(",",""))
             if match: b["reviews"] = int(match.group(1))
+        
+        # Método 2: Fallback con regex en texto visible si no se encontró reviews
+        if b["reviews"] == 0:
+            try:
+                full_text = await main.inner_text()
+                # Buscar patrones como "564 reseñas", "1.234 reviews", "(42 opiniones)"
+                reviews_match = re.search(r'[\(\s]?([\d\.,]+)\s*(reseñas?|reviews?|opiniones?)', full_text, re.I)
+                if reviews_match:
+                    reviews_str = reviews_match.group(1).replace(".", "").replace(",", "")
+                    b["reviews"] = int(reviews_str)
+                    logger.info(f"   📊 Reviews extraídas por fallback regex: {b['reviews']}")
+            except Exception as e:
+                logger.debug(f"Fallback regex para reviews falló: {e}")
 
         # Dirección
         addr_btn = main.locator('button[data-item-id="address"]').first

@@ -29,6 +29,15 @@ export default function LeadsPage() {
     const [filter, setFilter] = useState<FilterType>('ALL');
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Register Contact Modal state
+    const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+    const [registerChannel, setRegisterChannel] = useState<'whatsapp' | 'instagram' | 'email'>('whatsapp');
+    const [registerDate, setRegisterDate] = useState(new Date().toISOString().split('T')[0]);
+    const [registerNotes, setRegisterNotes] = useState('');
+    const [registerLoading, setRegisterLoading] = useState(false);
+    const [registerError, setRegisterError] = useState<string | null>(null);
+
     useEffect(() => {
         fetchClients();
     }, []);
@@ -44,6 +53,46 @@ export default function LeadsPage() {
             console.error('Error fetching leads:', e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const openRegisterModal = (client: Client) => {
+        setSelectedClient(client);
+        setRegisterChannel(client.phone ? 'whatsapp' : client.instagram ? 'instagram' : 'email');
+        setRegisterDate(new Date().toISOString().split('T')[0]);
+        setRegisterNotes('');
+        setRegisterError(null);
+        setShowRegisterModal(true);
+    };
+
+    const handleRegisterContact = async () => {
+        if (!selectedClient) return;
+        setRegisterLoading(true);
+        setRegisterError(null);
+
+        try {
+            const res = await fetch(`${api.pipeline.leads(selectedClient.id)}/register-contact`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    channel: registerChannel,
+                    contactedAt: new Date(registerDate).toISOString(),
+                    notes: registerNotes || undefined,
+                }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.message || 'Error registering contact');
+            }
+
+            // Success - refresh and close
+            await fetchClients();
+            setShowRegisterModal(false);
+        } catch (e: any) {
+            setRegisterError(e.message);
+        } finally {
+            setRegisterLoading(false);
         }
     };
 
@@ -200,20 +249,27 @@ export default function LeadsPage() {
                                         </span>
                                     </td>
                                     <td className="p-4">
-                                        <div className="flex justify-center gap-2">
+                                        <div className="flex justify-center gap-2 flex-wrap">
+                                            <button
+                                                onClick={() => openRegisterModal(client)}
+                                                className="bg-green-500 text-white px-3 py-1 text-xs font-bold border-2 border-black hover:bg-green-600 transition-colors"
+                                                title="Registrar contacto manual"
+                                            >
+                                                Contactado
+                                            </button>
                                             {client.audits && client.audits.length > 0 && (
                                                 <button
                                                     className="bg-purple-500 text-white px-3 py-1 text-xs font-bold border-2 border-black hover:bg-purple-600 transition-colors"
-                                                    title="Ver última Auditoría"
+                                                    title="Ver ultima Auditoria"
                                                 >
-                                                    🔍 Audit
+                                                    Audit
                                                 </button>
                                             )}
                                             <Link
                                                 href={`/projects?clientId=${client.id}`}
                                                 className="bg-neo-yellow text-black px-3 py-1 text-xs font-bold border-2 border-black hover:bg-yellow-400 transition-colors"
                                             >
-                                                📁 Proyecto
+                                                Proyecto
                                             </Link>
                                         </div>
                                     </td>
@@ -223,6 +279,80 @@ export default function LeadsPage() {
                     </table>
                 </div>
             )}
+
+            {/* Register Contact Modal */}
+            {showRegisterModal && selectedClient && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white border-4 border-black shadow-neo-lg p-6 max-w-md w-full">
+                        <h2 className="text-xl font-black uppercase mb-4">
+                            Registrar Contacto
+                        </h2>
+                        <p className="text-gray-600 mb-4">
+                            <strong>{selectedClient.name}</strong>
+                        </p>
+
+                        {registerError && (
+                            <div className="bg-red-100 border-2 border-red-500 p-3 mb-4 text-red-700 text-sm">
+                                {registerError}
+                            </div>
+                        )}
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block font-bold text-sm mb-1">Canal</label>
+                                <select
+                                    value={registerChannel}
+                                    onChange={(e) => setRegisterChannel(e.target.value as any)}
+                                    className="w-full border-2 border-black p-2 font-bold"
+                                >
+                                    <option value="whatsapp">WhatsApp</option>
+                                    <option value="instagram">Instagram</option>
+                                    <option value="email">Email</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-sm mb-1">Fecha del contacto</label>
+                                <input
+                                    type="date"
+                                    value={registerDate}
+                                    onChange={(e) => setRegisterDate(e.target.value)}
+                                    max={new Date().toISOString().split('T')[0]}
+                                    className="w-full border-2 border-black p-2"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-sm mb-1">Notas (opcional)</label>
+                                <textarea
+                                    value={registerNotes}
+                                    onChange={(e) => setRegisterNotes(e.target.value)}
+                                    placeholder="Ej: Primer contacto, le intereso..."
+                                    className="w-full border-2 border-black p-2 h-20 resize-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => setShowRegisterModal(false)}
+                                className="flex-1 bg-gray-200 border-2 border-black px-4 py-2 font-bold"
+                                disabled={registerLoading}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleRegisterContact}
+                                disabled={registerLoading}
+                                className="flex-1 bg-green-500 text-white border-2 border-black px-4 py-2 font-bold hover:bg-green-600 disabled:opacity-50"
+                            >
+                                {registerLoading ? 'Guardando...' : 'Registrar'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+
