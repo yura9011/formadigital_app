@@ -20,6 +20,8 @@ import { CalendarModule } from './calendar/calendar.module';
 import { ProspectModule } from './prospect/prospect.module';
 import { PipelineModule } from './pipeline/pipeline.module';
 
+const postsQueueEnabled = process.env.ENABLE_POSTS_QUEUE === 'true';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -30,14 +32,18 @@ import { PipelineModule } from './pipeline/pipeline.module';
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
-    BullModule.forRoot({
-      connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: Number(process.env.REDIS_PORT) || 6379,
-      },
-    }),
+    ...(postsQueueEnabled
+      ? [
+          BullModule.forRoot({
+            connection: {
+              host: process.env.REDIS_HOST || 'localhost',
+              port: Number(process.env.REDIS_PORT) || 6379,
+            },
+          }),
+          PostsModule,
+        ]
+      : []),
     PrismaModule,
-    PostsModule,
     IntegrationsModule,
     AuthModule,
     MediaModule,

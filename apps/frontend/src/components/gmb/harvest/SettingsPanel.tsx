@@ -10,7 +10,7 @@ interface SettingsPanelProps {
 }
 
 const STORAGE_KEY = 'harv3st_server_url';
-const DEFAULT_URL = 'http://localhost:5050';
+const DEFAULT_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000') + '/api/harv3st';
 
 const TRANSLATIONS = {
   en: {
@@ -28,7 +28,12 @@ const TRANSLATIONS = {
 export function getStoredServerUrl(): string {
   if (typeof window === 'undefined') return DEFAULT_URL;
   try {
-    return localStorage.getItem(STORAGE_KEY) || DEFAULT_URL;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored || stored.startsWith('http://localhost:5050') || stored.startsWith('http://127.0.0.1:5050')) {
+      localStorage.setItem(STORAGE_KEY, DEFAULT_URL);
+      return DEFAULT_URL;
+    }
+    return stored;
   } catch {
     return DEFAULT_URL;
   }

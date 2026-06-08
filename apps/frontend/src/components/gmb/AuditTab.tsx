@@ -34,7 +34,7 @@ const AuditTab: React.FC<AuditTabProps> = ({ language, clientData, competitors, 
         const fetchCredits = async () => {
             // ... existing fetch ...
             try {
-                const res = await fetch('http://localhost:3001/gmb/credits');
+                const res = await fetch('http://2.24.89.243:3000/gmb/credits');
                 if (res.ok) setCredits(await res.json());
             } catch (e) { console.error("Error fetching credits", e); }
         };

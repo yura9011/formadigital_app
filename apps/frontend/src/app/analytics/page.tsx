@@ -29,7 +29,7 @@ export default function AnalyticsPage() {
     // State for date range filter
 
     useEffect(() => {
-        fetch('http://localhost:3000/integrations')
+        fetch('http://2.24.89.243:3000/integrations')
             .then(res => res.json())
             .then(data => {
                 setIntegrations(data);
@@ -48,7 +48,7 @@ export default function AnalyticsPage() {
         const since = start.toISOString();
         const until = end.toISOString();
 
-        fetch(`http://localhost:3000/integrations/${selectedId}/analytics?since=${since}&until=${until}`)
+        fetch(`http://2.24.89.243:3000/integrations/${selectedId}/analytics?since=${since}&until=${until}`)
             .then(res => res.json())
             .then(data => setAnalytics(data))
             .catch(err => console.error(err))

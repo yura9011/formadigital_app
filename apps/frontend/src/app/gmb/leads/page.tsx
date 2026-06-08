@@ -10,6 +10,7 @@ interface Client {
     address: string;
     category?: string;
     phone?: string;
+    instagram?: string;
     website?: string;
     rating?: number;
     reviewCount?: number;

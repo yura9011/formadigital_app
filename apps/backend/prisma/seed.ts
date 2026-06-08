@@ -5,23 +5,26 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('Seeding database...');
 
-    const integration = await prisma.integration.upsert({
-        where: { id: 'instagram-integration-id' },
-        update: {
-            token: 'EAAY5Q48HeSIBQIfrm1y8PsElvKyuD7m0f9EQpnCfZC7CklotunZBbeDlPPtDTWOPbUt7g9m89S0GXXJXtXtNa9iuMUi73KWGdfKx9BQgzghEwBdcB1Mfqc66SSvXaZBY5ZBD8iwAlQFlX9ABZBZAeQT7UQ6ug4qokyPDLJiNfZCKSsqlqg1eiHVaR8KRLcU1FLs8OZA6zNu2nspKtvm0zczSU1srBZAcHZCCl5Jw4hxQva0IPZCtGpZAFsE5lDscZCNcZCcRnIjXryAStcTyffPhBVYF95pC1e',
-            accountId: '17841478314190915',
-        },
-        create: {
-            id: 'instagram-integration-id',
-            name: 'Forma Digital (IG)',
-            provider: 'instagram',
-            token: 'EAAY5Q48HeSIBQIfrm1y8PsElvKyuD7m0f9EQpnCfZC7CklotunZBbeDlPPtDTWOPbUt7g9m89S0GXXJXtXtNa9iuMUi73KWGdfKx9BQgzghEwBdcB1Mfqc66SSvXaZBY5ZBD8iwAlQFlX9ABZBZAeQT7UQ6ug4qokyPDLJiNfZCKSsqlqg1eiHVaR8KRLcU1FLs8OZA6zNu2nspKtvm0zczSU1srBZAcHZCCl5Jw4hxQva0IPZCtGpZAFsE5lDscZCNcZCcRnIjXryAStcTyffPhBVYF95pC1e',
-            accountId: '17841478314190915',
-            pictureUrl: 'https://ui-avatars.com/api/?name=Forma+Digital&background=E1306C&color=fff',
-        },
-    });
+    const instagramToken = process.env.INSTAGRAM_ACCESS_TOKEN;
+    const instagramAccountId = process.env.INSTAGRAM_ACCOUNT_ID;
 
-    console.log({ integration });
+    if (instagramToken && instagramAccountId) {
+        await prisma.integration.upsert({
+            where: { id: 'instagram-integration-id' },
+            update: { token: instagramToken, accountId: instagramAccountId },
+            create: {
+                id: 'instagram-integration-id',
+                name: 'Forma Digital (IG)',
+                provider: 'instagram',
+                token: instagramToken,
+                accountId: instagramAccountId,
+                pictureUrl: 'https://ui-avatars.com/api/?name=Forma+Digital&background=E1306C&color=fff',
+            },
+        });
+        console.log('Instagram integration seeded from environment');
+    } else {
+        console.log('Instagram integration skipped: credentials not configured');
+    }
 
     // Seed Admin User
     // Password: admin123
@@ -38,7 +41,7 @@ async function main() {
             password: adminHash,
         },
     });
-    console.log({ user });
+    console.log('Admin user seeded');
 
     // Seed Lucho User
     // Password: 123456
@@ -55,7 +58,7 @@ async function main() {
             password: luchoHash,
         },
     });
-    console.log({ luchoUser });
+    console.log('Lucho user seeded');
 
     // Seed Default Message Templates for Prospecting
     console.log('Seeding default message templates...');

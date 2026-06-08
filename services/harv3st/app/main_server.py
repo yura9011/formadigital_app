@@ -227,7 +227,7 @@ def clear_data():
 
 def start_server():
     print(f"🌍 Starting Server on {Config.API_URL}")
-    app.run(port=Config.SERVER_PORT, debug=True, use_reloader=False)
+    app.run(host=Config.SERVER_HOST, port=Config.SERVER_PORT, debug=False, use_reloader=False)
 
 if __name__ == '__main__':
     start_server()

@@ -116,7 +116,7 @@ export interface Harv3stConfig {
 }
 
 export const DEFAULT_HARV3ST_CONFIG: Harv3stConfig = {
-  baseUrl: 'http://localhost:5050',
+  baseUrl: (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000') + '/api/harv3st',
   pollIntervalMs: 2000,
   connectionCheckIntervalMs: 30000,
 };
