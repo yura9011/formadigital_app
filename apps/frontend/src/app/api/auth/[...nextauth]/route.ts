@@ -11,7 +11,8 @@ const handler = NextAuth({
             },
             async authorize(credentials) {
                 try {
-                    const res = await fetch("http://localhost:3000/auth/login", {
+                    const apiUrl = process.env.AUTH_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:3000";
+                    const res = await fetch(`${apiUrl}/auth/login`, {
                         method: "POST",
                         body: JSON.stringify(credentials),
                         headers: { "Content-Type": "application/json" },
@@ -20,7 +21,7 @@ const handler = NextAuth({
                     const user = await res.json();
 
                     if (res.ok && user) {
-                        return user.user; // Return the user object from the backend response
+                        return user.user;
                     }
                     return null;
                 } catch (e) {

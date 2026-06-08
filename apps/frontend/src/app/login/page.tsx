@@ -6,7 +6,7 @@ import { NeoButton } from '../../components/neo/NeoButton';
 import { NeoInput } from '../../components/neo/NeoInput';
 import toast from 'react-hot-toast';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -89,15 +89,6 @@ export default function LoginPage() {
                         </NeoButton>
                     </form>
 
-                    <div className="mt-6 pt-6 border-t-2 border-gray-200 text-center text-sm text-gray-500">
-                        <p>Usuarios disponibles:</p>
-                        <p className="font-mono mt-2">
-                            lucas@formadigital.com<br />
-                            nahuel@formadigital.com<br />
-                            lucho@formadigital.com<br />
-                            (pass: 123456)
-                        </p>
-                    </div>
                 </NeoCard>
             </div>
         </div>

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -26,39 +27,26 @@ async function main() {
         console.log('Instagram integration skipped: credentials not configured');
     }
 
-    // Seed Admin User
-    // Password: admin123
-    const adminHash = '$2b$10$UWT.8.iVQtyygmhoKMFy5eUDkpHvnqCSF7lxpnGxn3VMTg4kmxvVO';
+    const defaultUserPassword = process.env.DEFAULT_USER_PASSWORD;
+    if (defaultUserPassword) {
+        const password = await bcrypt.hash(defaultUserPassword, 10);
+        const users = [
+            { email: 'admin@formadigital.com', name: 'Admin' },
+            { email: 'lucas@formadigital.com', name: 'Lucas' },
+            { email: 'marcos@formadigital.com', name: 'Marcos' },
+        ];
 
-    const user = await prisma.user.upsert({
-        where: { email: 'admin@formadigital.com' },
-        update: {
-            password: adminHash,
-        },
-        create: {
-            email: 'admin@formadigital.com',
-            name: 'Admin User',
-            password: adminHash,
-        },
-    });
-    console.log('Admin user seeded');
-
-    // Seed Lucho User
-    // Password: 123456
-    const luchoHash = '$2b$10$cW.6umaP49vlGkcJFe5VLewt0z7d/nu8GuHFAokjk43p6BSPcLDdu';
-
-    const luchoUser = await prisma.user.upsert({
-        where: { email: 'lucho@formadigital.com' },
-        update: {
-            password: luchoHash,
-        },
-        create: {
-            email: 'lucho@formadigital.com',
-            name: 'Lucho',
-            password: luchoHash,
-        },
-    });
-    console.log('Lucho user seeded');
+        for (const user of users) {
+            await prisma.user.upsert({
+                where: { email: user.email },
+                update: { name: user.name, password },
+                create: { ...user, password },
+            });
+        }
+        console.log('Login users seeded');
+    } else {
+        console.log('Login users skipped: DEFAULT_USER_PASSWORD not configured');
+    }
 
     // Seed Default Message Templates for Prospecting
     console.log('Seeding default message templates...');

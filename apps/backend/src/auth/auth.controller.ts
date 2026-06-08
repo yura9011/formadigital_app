@@ -8,10 +8,20 @@ export class AuthController {
 
     @Post('login')
     async login(@Body() body: { email: string; password: string }) {
-        const { email, password } = body;
+        const email = body.email?.trim().toLowerCase();
+        const password = body.password;
 
         if (!email || !password) {
             throw new UnauthorizedException('Email y contraseña son requeridos');
+        }
+
+        const allowedEmails = new Set([
+            'admin@formadigital.com',
+            'lucas@formadigital.com',
+            'marcos@formadigital.com',
+        ]);
+        if (!allowedEmails.has(email)) {
+            throw new UnauthorizedException('Credenciales inválidas');
         }
 
         // Find user by email
@@ -26,13 +36,13 @@ export class AuthController {
         });
 
         if (!user) {
-            throw new UnauthorizedException('Usuario no encontrado');
+            throw new UnauthorizedException('Credenciales inválidas');
         }
 
         // Verify password
         const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) {
-            throw new UnauthorizedException('Contraseña incorrecta');
+            throw new UnauthorizedException('Credenciales inválidas');
         }
 
         // Return user data (without password)
