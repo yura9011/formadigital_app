@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Business, Language, AuditResult } from './types';
 import { TRANSLATIONS } from './constants';
 import { performAudit } from '../../services/gmb.service';
+import { API_URL } from '../../config/api';
 
 interface AuditTabProps {
     language: Language;
@@ -34,7 +35,7 @@ const AuditTab: React.FC<AuditTabProps> = ({ language, clientData, competitors, 
         const fetchCredits = async () => {
             // ... existing fetch ...
             try {
-                const res = await fetch('http://2.24.89.243:3000/gmb/credits');
+                const res = await fetch(`${API_URL}/gmb/credits`);
                 if (res.ok) setCredits(await res.json());
             } catch (e) { console.error("Error fetching credits", e); }
         };

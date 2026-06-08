@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { NeoCard } from '../../components/neo/NeoCard';
 import { NeoButton } from '../../components/neo/NeoButton';
 import { NeoLineChart } from '../../components/neo/NeoLineChart';
+import { API_URL } from '../../config/api';
 
 interface AccountInfo {
     name: string;
@@ -29,7 +30,7 @@ export default function AnalyticsPage() {
     // State for date range filter
 
     useEffect(() => {
-        fetch('http://2.24.89.243:3000/integrations')
+        fetch(`${API_URL}/integrations`)
             .then(res => res.json())
             .then(data => {
                 setIntegrations(data);
@@ -48,7 +49,7 @@ export default function AnalyticsPage() {
         const since = start.toISOString();
         const until = end.toISOString();
 
-        fetch(`http://2.24.89.243:3000/integrations/${selectedId}/analytics?since=${since}&until=${until}`)
+        fetch(`${API_URL}/integrations/${selectedId}/analytics?since=${since}&until=${until}`)
             .then(res => res.json())
             .then(data => setAnalytics(data))
             .catch(err => console.error(err))

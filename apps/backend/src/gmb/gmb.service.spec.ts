@@ -48,6 +48,7 @@ describe('GmbService', () => {
         prismaService = module.get<PrismaService>(PrismaService);
 
         jest.clearAllMocks();
+        process.env.RADAR_SECRET_KEY = 'test-radar-key';
     });
 
     it('should be defined', () => {
@@ -113,7 +114,7 @@ describe('GmbService', () => {
             expect(result[1].name).toBe('Kiosco Test');
         });
 
-        it('should handle Radar API errors gracefully by throwing', async () => {
+        it('should propagate Radar API errors', async () => {
             const params = { address: 'Test Address', keywords: 'Kiosco', radius: 1000, products: '' };
 
             // 1. Mock Nominatim Success
@@ -124,7 +125,7 @@ describe('GmbService', () => {
             // 2. Mock Radar Error
             mockedAxios.get.mockRejectedValue(new Error('Radar Error'));
 
-            await expect(service.searchCompetitors(params)).rejects.toThrow();
+            await expect(service.searchCompetitors(params)).rejects.toThrow('Radar Error');
         });
     });
 

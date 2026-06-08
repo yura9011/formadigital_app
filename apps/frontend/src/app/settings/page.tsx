@@ -10,6 +10,7 @@ import * as gmbService from '../../services/gmb.service';
 import { getScoringRules, ScoringConfig, ScoringRule } from '../../services/pipeline.service';
 import toast from 'react-hot-toast';
 import { withAuth } from '../../components/auth/withAuth';
+import { API_URL } from '../../config/api';
 
 interface Integration {
     id: string;
@@ -63,7 +64,7 @@ function SettingsPage() {
     const fetchData = async () => {
         try {
             const [integrationsData, usersData] = await Promise.all([
-                fetch('http://2.24.89.243:3000/integrations').then(r => r.json()).catch(() => []),
+                fetch(`${API_URL}/integrations`).then(r => r.json()).catch(() => []),
                 gmbService.getUsers()
             ]);
             setIntegrations(integrationsData);
@@ -92,7 +93,7 @@ function SettingsPage() {
         if (!confirm('¿Estás seguro de que quieres desconectar esta cuenta?')) return;
 
         try {
-            await fetch(`http://2.24.89.243:3000/integrations/${id}`, { method: 'DELETE' });
+            await fetch(`${API_URL}/integrations/${id}`, { method: 'DELETE' });
             setIntegrations(prev => prev.filter(i => i.id !== id));
         } catch (error) {
             console.error('Failed to disconnect', error);
@@ -105,7 +106,7 @@ function SettingsPage() {
         setIsSubmitting(true);
 
         try {
-            const res = await fetch('http://2.24.89.243:3000/integrations', {
+            const res = await fetch(`${API_URL}/integrations`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, provider, token, accountId }),

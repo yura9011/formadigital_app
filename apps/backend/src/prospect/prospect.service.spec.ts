@@ -354,10 +354,10 @@ describe('ProspectService', () => {
         message: fc.string(),
         status: fc.constantFrom('none', 'pending', 'approved', 'sent', 'rejected', 'responded'),
         notes: fc.option(fc.string()),
-        sentAt: fc.option(fc.date()),
-        respondedAt: fc.option(fc.date()),
-        createdAt: fc.date({ min: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }), // Within last week
-        updatedAt: fc.date(),
+        sentAt: fc.option(fc.date({ noInvalidDate: true })),
+        respondedAt: fc.option(fc.date({ noInvalidDate: true })),
+        createdAt: fc.date({ min: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), noInvalidDate: true }), // Within last week
+        updatedAt: fc.date({ noInvalidDate: true }),
       });
 
       await fc.assert(

@@ -63,6 +63,10 @@ top5_*.txt
 scripts/agent_v2/results*.json
 scripts/agent_v2/final_test.json
 
+# Runtime and agent working files
+.runtime/
+.hermes/
+
 # Generated reports (local)
 prospecting_results/*.html
 prospecting_results/*.csv
