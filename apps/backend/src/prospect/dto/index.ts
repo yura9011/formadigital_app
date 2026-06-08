@@ -32,6 +32,8 @@ export interface LeadSummary {
   categories?: string | null;
   contactStatus: ContactStatus;
   availableChannels: OutreachChannel[];
+  serviceOpportunities?: any;
+  ownerName?: string | null;
 }
 
 export interface GetLeadsResult {

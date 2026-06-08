@@ -35,7 +35,7 @@ export class EnrichmentService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
   ) {
-    this.harv3stUrl = this.configService.get<string>('HARV3ST_URL') || 'http://localhost:5001';
+    this.harv3stUrl = this.configService.get<string>('HARV3ST_URL') || 'http://localhost:5050';
   }
 
   /**

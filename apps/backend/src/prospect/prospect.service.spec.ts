@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProspectService } from './prospect.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EnrichmentService } from './services/enrichment.service';
+import { EnrichmentService as PipelineEnrichmentService } from '../pipeline/enrichment.service';
 import * as fc from 'fast-check';
 
 /**
@@ -92,6 +93,10 @@ describe('ProspectService', () => {
         {
           provide: EnrichmentService,
           useValue: mockEnrichmentService,
+        },
+        {
+          provide: PipelineEnrichmentService,
+          useValue: { enrichInstagram: jest.fn().mockResolvedValue({ success: true }) },
         },
       ],
     }).compile();

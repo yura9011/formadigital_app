@@ -13,6 +13,19 @@ export interface DayHours {
  * Lead data as returned by Harv3st API
  * This is the raw format from /api/data endpoint
  */
+export interface ServiceOpportunity {
+  detected: boolean;
+  reason: string | null;
+  priority: 'alta' | 'media' | 'baja' | null;
+}
+
+export interface ServiceOpportunities {
+  web: ServiceOpportunity;
+  gbp: ServiceOpportunity;
+  whatsapp: ServiceOpportunity;
+  odoo: ServiceOpportunity;
+}
+
 export interface HarvestedLead {
   placeId: string;
   name: string;
@@ -30,8 +43,14 @@ export interface HarvestedLead {
   hours?: DayHours[] | null;
   isOpenNow?: boolean | null;
   attributes?: string[] | null;
+  instagram?: string | null;
+  facebook?: string | null;
+  linkedin?: string | null;
+  businessDescription?: string | null;
+  ownerName?: string | null;
   _captured_at: number;
-  score?: number; // Added by scoring service
+  score?: number;
+  serviceOpportunities?: ServiceOpportunities;
 }
 
 /**

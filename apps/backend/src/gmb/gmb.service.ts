@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { Business, SearchParams, AuditResult, DEFAULT_CONFIG } from './types';
 import axios from 'axios';
 import * as fs from 'fs/promises';
@@ -278,7 +278,7 @@ export class GmbService {
     ): Promise<AuditResult> {
 
         if (!clientData) {
-            throw new Error("Client data is required for audit");
+            throw new HttpException("Se requieren datos del cliente para la auditoría", HttpStatus.BAD_REQUEST);
         }
 
         this.logger.log(`🔍 Starting AI Audit for: ${clientData.name}`);

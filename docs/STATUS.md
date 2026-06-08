@@ -13,6 +13,16 @@ Actualizado: 2026-06-08
 - Deploy automático activo: CI publica la rama `deploy`; el VPS consulta cada minuto.
 - Prisma: 9 migraciones baselinadas y sin migraciones pendientes al último deploy.
 
+## Último cambio (2026-06-08)
+
+Scoring v2.0 y detección de oportunidades por servicio. Ver `CHANGELOG.md` [1.1.0] para detalles completos.
+
+**Pendiente de deploy**: Crear migración Prisma para los nuevos campos (`businessDescription`, `ownerName`, `serviceOpportunities`) antes de hacer push a main.
+
+```bash
+cd apps/backend && npx prisma migrate dev --name add-service-opportunities
+```
+
 ## Login
 
 - Usuarios visibles: `admin`, `lucas`, `marcos`.
@@ -38,15 +48,14 @@ Actualizado: 2026-06-08
 
 ## Próximo trabajo recomendado
 
-Implementar autenticación y autorización real de extremo a extremo:
-
-- Sesión o JWT firmado por backend.
-- Middleware/guards en endpoints privados.
-- Cookies seguras en lugar de confiar en `localStorage`.
-- Logout e invalidación de sesión.
-- Pruebas de acceso permitido y denegado.
-
-Después, configurar dominio + HTTPS y verificar persistencia tras reinicio del VPS.
+1. **Deploy del scoring v2.0**: Crear migración Prisma y hacer push a main.
+2. **Autenticación y autorización real** de extremo a extremo:
+   - Sesión o JWT firmado por backend.
+   - Middleware/guards en endpoints privados.
+   - Cookies seguras en lugar de confiar en `localStorage`.
+   - Logout e invalidación de sesión.
+   - Pruebas de acceso permitido y denegado.
+3. Configurar dominio + HTTPS y verificar persistencia tras reinicio del VPS.
 
 ## Regla de actualización
 

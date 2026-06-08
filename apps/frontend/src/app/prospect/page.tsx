@@ -13,6 +13,19 @@ type ContactStatus = 'none' | 'pending' | 'approved' | 'sent' | 'rejected' | 're
 type OutreachChannel = 'instagram' | 'whatsapp' | 'email';
 type TabType = 'leads' | 'contacts' | 'templates' | 'stats';
 
+interface ServiceOpportunity {
+  detected: boolean;
+  reason: string | null;
+  priority: 'alta' | 'media' | 'baja' | null;
+}
+
+interface ServiceOpportunities {
+  web: ServiceOpportunity;
+  gbp: ServiceOpportunity;
+  whatsapp: ServiceOpportunity;
+  odoo: ServiceOpportunity;
+}
+
 interface Lead {
   id: string;
   name: string;
@@ -27,6 +40,8 @@ interface Lead {
   categories?: string | null;
   contactStatus: ContactStatus;
   availableChannels: OutreachChannel[];
+  serviceOpportunities?: ServiceOpportunities;
+  ownerName?: string | null;
 }
 
 interface ContactRecord {
@@ -93,6 +108,7 @@ function ProspectPage() {
     hasWebsite: undefined as boolean | undefined,
     hasPhone: undefined as boolean | undefined,
     includeContacted: false,
+    serviceFilter: '' as string,
   });
   
   // Contacts state
@@ -138,12 +154,24 @@ function ProspectPage() {
       if (leadFilters.hasWebsite !== undefined) params.append('hasWebsite', String(leadFilters.hasWebsite));
       if (leadFilters.hasPhone !== undefined) params.append('hasPhone', String(leadFilters.hasPhone));
       if (leadFilters.includeContacted) params.append('includeContacted', 'true');
-      params.append('limit', '50');
+      params.append('limit', '100');
       
       const res = await fetch(`${API_BASE}/api/prospect/leads?${params.toString()}`);
       const data = await res.json();
-      setLeads(data.leads || []);
-      setLeadsTotal(data.total || 0);
+      let filteredLeads = data.leads || [];
+
+      // Client-side service filter
+      if (leadFilters.serviceFilter) {
+        filteredLeads = filteredLeads.filter((lead: Lead) => {
+          const so = lead.serviceOpportunities;
+          if (!so) return false;
+          const service = so[leadFilters.serviceFilter as keyof ServiceOpportunities];
+          return service?.detected === true;
+        });
+      }
+
+      setLeads(filteredLeads);
+      setLeadsTotal(filteredLeads.length);
     } catch (error) {
       console.error('Failed to load leads:', error);
       toast.error('Error al cargar leads');
@@ -517,11 +545,25 @@ function ProspectPage() {
                 <input
                   type="checkbox"
                   id="includeContacted"
-                  checked={leadFilters.includeContacted}
+                  checked={leadFilters.includeContacted === true}
                   onChange={(e) => setLeadFilters({ ...leadFilters, includeContacted: e.target.checked })}
                   className="w-5 h-5"
                 />
                 <label htmlFor="includeContacted" className="font-bold text-sm">Incluir contactados</label>
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase text-gray-500 block mb-1">Filtrar por servicio</label>
+                <select
+                  value={leadFilters.serviceFilter}
+                  onChange={(e) => setLeadFilters({ ...leadFilters, serviceFilter: e.target.value })}
+                  className="p-2 border-2 border-neo-border text-sm"
+                >
+                  <option value="">Todos</option>
+                  <option value="web">🌐 Sitio Web</option>
+                  <option value="gbp">📍 Google Business</option>
+                  <option value="whatsapp">💬 WhatsApp IA</option>
+                  <option value="odoo">⚙️ Odoo/ERP</option>
+                </select>
               </div>
               <NeoButton variant="accent" onClick={loadLeads}>🔍 Buscar</NeoButton>
             </div>
@@ -563,6 +605,22 @@ function ProspectPage() {
                           <td className="p-4">
                             <p className="font-bold">{lead.name}</p>
                             <p className="text-xs text-gray-400">{lead.categories || lead.address}</p>
+                            {lead.serviceOpportunities && (
+                              <div className="flex gap-1 mt-1 flex-wrap">
+                                {lead.serviceOpportunities.web?.detected && (
+                                  <span className="text-[10px] px-1 py-0.5 bg-blue-100 border border-blue-300 font-bold" title={lead.serviceOpportunities.web.reason || ''}>🌐 Web</span>
+                                )}
+                                {lead.serviceOpportunities.gbp?.detected && (
+                                  <span className="text-[10px] px-1 py-0.5 bg-green-100 border border-green-300 font-bold" title={lead.serviceOpportunities.gbp.reason || ''}>📍 GBP</span>
+                                )}
+                                {lead.serviceOpportunities.whatsapp?.detected && (
+                                  <span className="text-[10px] px-1 py-0.5 bg-purple-100 border border-purple-300 font-bold" title={lead.serviceOpportunities.whatsapp.reason || ''}>💬 WA</span>
+                                )}
+                                {lead.serviceOpportunities.odoo?.detected && (
+                                  <span className="text-[10px] px-1 py-0.5 bg-orange-100 border border-orange-300 font-bold" title={lead.serviceOpportunities.odoo.reason || ''}>⚙️ ERP</span>
+                                )}
+                              </div>
+                            )}
                           </td>
                           <td className="p-4 text-center hidden md:table-cell">
                             {lead.rating ? (

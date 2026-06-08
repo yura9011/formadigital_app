@@ -2,6 +2,59 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-06-08
+### Added
+- **Scoring v2.0 por Servicio**: Scoring alineado con los 4 servicios de Forma Digital:
+  - **Web** (sitios web): Sin sitio web (+25), sitio básico sin redes (+20)
+  - **Google Business** (fichas): Sin fotos (+15), pocas fotos (+5), rating bajo (+10)
+  - **WhatsApp con IA**: Alto volumen con rating bajo (+20), delivery (+15), negocio de comida (+10)
+  - **Odoo/ERP**: Retail con alto volumen (+10)
+- **Detección de Oportunidades por Servicio**: Campo `serviceOpportunities` en Client con detección automática de leads relevantes para cada servicio.
+- **Captura Completa desde Google Maps**:
+  - Facebook desde social links de Google Maps
+  - LinkedIn desde social links de Google Maps
+  - Descripción del negocio
+  - Nombre del dueño/encargado
+- **Instagram Enrichment Automático**: Integración del `instagram_enricher.py` (Instaloader) en el pipeline de importación. Obtiene: seguidores, posts, última fecha de post, bio.
+- **Filtro por Servicio en Frontend**: Nuevo filtro "Filtrar por servicio" en la página de prospecting con opciones: Sitio Web, Google Business, WhatsApp IA, Odoo/ERP.
+- **Badges de Oportunidad**: Badges visuales en la tabla de leads mostrando servicios detectados (🌐 Web, 📍 GBP, 💬 WA, ⚙️ ERP).
+
+### Changed
+- **Scoring.py**: Reemplazado scoring genérico por scoring alineado con servicios. Eliminada regla `high_success` (negocios exitosos NO son leads). Eliminada regla `is_open_now`.
+- **Backend prospect.service.ts**: Score normalizado a 0-100 con nueva lógica. Método `detectServiceOpportunities()` genera oportunidades por servicio. Método `detectGapsFromHarvest()` ampliado con más tipos de gaps.
+- **Frontend scoringService.ts**: Scoring v2.0 con detección de servicios. Función `detectServiceOpportunities()` retorna `ServiceOpportunities`.
+- **Backend scoring-rules.json**: Actualizado a v2.0 con reglas del pipeline scoring.
+- **Frontend harv3stTypes.ts**: Nuevos tipos `ServiceOpportunity`, `ServiceOpportunities`, campos `facebook`, `linkedin`, `businessDescription`, `ownerName` en `HarvestedLead`.
+- **Backend pipeline/enrichment.service.ts**: Corregido `HARV3ST_URL` de `localhost:5001` a `localhost:5050`.
+
+### Database
+- **Nuevos campos en Client**:
+  - `businessDescription String? @db.Text` - Descripción del negocio desde Google Maps
+  - `ownerName String?` - Nombre del dueño/encargado
+  - `serviceOpportunities Json?` - Detección de oportunidades por servicio
+
+### Archivos modificados
+| Archivo | Cambio |
+|---|---|
+| `services/harv3st/core/parser.py` | Extracción de Facebook, LinkedIn, descripción, nombre dueño |
+| `services/harv3st/core/scoring.py` | Scoring v2.0 con reglas por servicio |
+| `apps/backend/prisma/schema.prisma` | Campos businessDescription, ownerName, serviceOpportunities |
+| `apps/backend/src/prospect/prospect.service.ts` | Score v2.0, serviceOpportunities, integración Instagram enricher |
+| `apps/backend/src/prospect/prospect.module.ts` | Importación PipelineModule |
+| `apps/backend/src/prospect/dto/index.ts` | LeadSummary con serviceOpportunities, ownerName |
+| `apps/backend/config/scoring-rules.json` | Reglas v2.0 con condiciones |
+| `apps/backend/src/pipeline/enrichment.service.ts` | Corrección puerto HARV3ST_URL |
+| `apps/frontend/src/services/harv3st/harv3stTypes.ts` | Tipos ServiceOpportunity, campos nuevos |
+| `apps/frontend/src/services/harv3st/scoringService.ts` | Scoring v2.0 con detección de servicios |
+| `apps/frontend/src/app/prospect/page.tsx` | Filtro por servicio, badges de oportunidad |
+| `apps/backend/src/prospect/prospect.service.spec.ts` | Mock para PipelineEnrichmentService |
+
+### Validación
+- Harv3st compila correctamente
+- Backend build correcto
+- Frontend build correcto
+- Backend tests: 40/40 aprobados
+
 ## [1.0.0] - 2026-01-03
 ### Added
 - **Agent V2 - Sistema de Prospección Automatizado**: Pipeline completo de prospección con validación, scoring y outreach.

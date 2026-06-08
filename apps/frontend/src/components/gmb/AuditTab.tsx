@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Business, Language, AuditResult } from './types';
 import { TRANSLATIONS } from './constants';
 import { performAudit } from '../../services/gmb.service';
@@ -93,8 +94,17 @@ const AuditTab: React.FC<AuditTabProps> = ({ language, clientData, competitors, 
         try {
             const auditRes = await performAudit(url, clientData, competitors, language, userSearchAddress, products, zoneContext);
             setAuditResult(auditRes);
-        } catch (e) {
+            toast.success('Auditoría completada!');
+        } catch (e: any) {
             console.error(e);
+            const msg = e?.message || 'Error desconocido';
+            if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+                toast.error('Error de conexión con el servidor. Verificá que el backend esté corriendo.');
+            } else if (msg.includes('500')) {
+                toast.error('Error interno del servidor. Revisá los logs del backend.');
+            } else {
+                toast.error(`Error en la auditoría: ${msg}`);
+            }
         } finally {
             setIsAuditing(false);
         }

@@ -71,7 +71,8 @@ export async function performAudit(
     });
 
     if (!res.ok) {
-        throw new Error(`Error parsing audit: ${res.statusText}`);
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || `Error ejecutando auditoría: ${res.statusText}`);
     }
 
     return res.json();

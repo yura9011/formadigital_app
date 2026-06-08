@@ -155,6 +155,11 @@ model Client {
   instagram     String?
   facebook      String?
   linkedin      String?
+
+  // === v3.0 Lead Enrichment ===
+  businessDescription String?   @db.Text  // From Google Maps description
+  ownerName           String?             // Business owner / contact name
+  serviceOpportunities Json?              // Per-service opportunity detection
   
   // === Instagram Enrichment Fields ===
   instagramFollowers    Int?

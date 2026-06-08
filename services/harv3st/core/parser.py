@@ -119,39 +119,60 @@ def extract_business_data(item):
         attrs_raw = get_nested(item, 100, 0)
         attributes = parse_attributes(attrs_raw)
         
-        # === SOCIAL MEDIA EXTRACTION (v2.0) ===
+        # === SOCIAL MEDIA EXTRACTION (v3.0) ===
+        import re
+
         instagram = None
-        
+        facebook = None
+        linkedin = None
+
         # Method 1: Check if website is actually an Instagram link
         if website and 'instagram.com' in str(website).lower():
-            # Extract username from URL
-            import re
             match = re.search(r'instagram\.com/([^/?#]+)', str(website))
             if match:
                 instagram = match.group(1)
-                website = None  # Clear website since it was IG
-        
+                website = None
+
         # Method 2: Check description/additional fields for @username
-        description = get_nested(item, 32, 0) or get_nested(item, 32, 1, 0) or ""
-        if not instagram and description:
-            import re
-            # Look for @username patterns
-            match = re.search(r'@([a-zA-Z0-9._]+)', str(description))
+        description_raw = get_nested(item, 32, 0) or get_nested(item, 32, 1, 0) or ""
+        if not instagram and description_raw:
+            match = re.search(r'@([a-zA-Z0-9._]+)', str(description_raw))
             if match:
                 instagram = match.group(1)
-        
+
         # Method 3: Check social profile links array (position varies)
         social_links = get_nested(item, 175) or get_nested(item, 176) or []
-        if not instagram and isinstance(social_links, list):
+        if isinstance(social_links, list):
             for link in social_links:
                 if isinstance(link, (list, str)):
-                    link_str = str(link)
-                    if 'instagram.com' in link_str.lower():
-                        import re
-                        match = re.search(r'instagram\.com/([^/?#\]"\']+)', link_str)
+                    link_str = str(link).lower()
+                    if not instagram and 'instagram.com' in link_str:
+                        match = re.search(r'instagram\.com/([^/?#\]"\']+)', str(link))
                         if match:
                             instagram = match.group(1)
-                            break
+                    elif not facebook and 'facebook.com' in link_str:
+                        match = re.search(r'facebook\.com/([^/?#\]"\']+)', str(link))
+                        if match:
+                            facebook = match.group(1)
+                    elif not linkedin and 'linkedin.com' in link_str:
+                        match = re.search(r'linkedin\.com/(?:company|in)/([^/?#\]"\']+)', str(link))
+                        if match:
+                            linkedin = match.group(1)
+
+        # === BUSINESS DESCRIPTION ===
+        business_description = None
+        desc_full = get_nested(item, 32, 0) or get_nested(item, 32, 1, 0)
+        if desc_full and isinstance(desc_full, str) and len(desc_full) > 5:
+            business_description = desc_full.strip()
+
+        # === OWNER / CONTACT NAME ===
+        owner_name = None
+        # Try common Google Maps owner fields
+        for owner_path in [(172, 0), (172, 1), (173, 0), (173, 1)]:
+            candidate = get_nested(item, *owner_path)
+            if candidate and isinstance(candidate, str) and len(candidate) > 2:
+                owner_name = candidate.strip()
+                break
 
         # === BUILD DATA OBJECT ===
         data = {
@@ -161,18 +182,21 @@ def extract_business_data(item):
             "reviewCount": get_nested(item, 4, 8),
             "phones": phone,
             "website": website,
-            "instagram": instagram,  # NEW: Instagram handle
+            "instagram": instagram,
+            "facebook": facebook,
+            "linkedin": linkedin,
             "latitude": lat,
             "longitude": lng,
             "categories": categories,
             "fullAddress": full_address,
-            # New fields
             "reviewsUrl": reviews_url,
             "photoCount": photo_count,
             "priceLevel": price_level,
             "hours": hours,
             "isOpenNow": is_open_now,
             "attributes": attributes,
+            "businessDescription": business_description,
+            "ownerName": owner_name,
         }
 
         # Cleanup list fields to strings

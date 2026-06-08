@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EnrichmentService } from './services/enrichment.service';
+import { EnrichmentService as PipelineEnrichmentService } from '../pipeline/enrichment.service';
 import {
   GetLeadsDto,
   GetLeadsResult,
@@ -40,6 +41,11 @@ interface HarvestedLead {
   hours: any[] | null;
   isOpenNow: boolean | null;
   attributes: string[] | null;
+  instagram: string | null;
+  facebook: string | null;
+  linkedin: string | null;
+  businessDescription: string | null;
+  ownerName: string | null;
   _captured_at: number;
 }
 
@@ -55,6 +61,7 @@ export class ProspectService {
   constructor(
     private prisma: PrismaService,
     private enrichmentService: EnrichmentService,
+    private pipelineEnrichmentService: PipelineEnrichmentService,
   ) { }
 
   // ==================== LEAD METHODS ====================
@@ -132,6 +139,8 @@ export class ProspectService {
       categories: client.category,
       contactStatus: (client.contactStatus as ContactStatus) || 'none',
       availableChannels: this.getAvailableChannels(client),
+      serviceOpportunities: client.serviceOpportunities || null,
+      ownerName: client.ownerName || null,
     }));
 
     return {
@@ -893,30 +902,33 @@ export class ProspectService {
   private detectOpportunities(client: any): string[] {
     const opportunities: string[] = [];
 
+    // Use serviceOpportunities if available (v2.0)
+    if (client.serviceOpportunities) {
+      const so = client.serviceOpportunities;
+      if (so.web?.detected) opportunities.push(`[Web] ${so.web.reason}`);
+      if (so.gbp?.detected) opportunities.push(`[GBP] ${so.gbp.reason}`);
+      if (so.whatsapp?.detected) opportunities.push(`[WhatsApp IA] ${so.whatsapp.reason}`);
+      if (so.odoo?.detected) opportunities.push(`[Odoo/ERP] ${so.odoo.reason}`);
+      if (opportunities.length > 0) return opportunities;
+    }
+
+    // Fallback to basic detection
     if (!client.website) {
-      opportunities.push('No tiene sitio web - oportunidad de desarrollo web');
+      opportunities.push('[Web] Sin sitio web - oportunidad de desarrollo web');
     }
-
     if (client.rating && client.rating < 4.0 && client.reviewCount && client.reviewCount > 20) {
-      opportunities.push(
-        `Rating de ${client.rating} con ${client.reviewCount} reseñas - oportunidad de gestión de reputación`,
-      );
+      opportunities.push(`[GBP] Rating de ${client.rating} con ${client.reviewCount} reseñas`);
     }
+    if (!client.instagram) opportunities.push('[Web] Sin Instagram');
+    if (!client.facebook) opportunities.push('[Web] Sin Facebook');
 
-    if (!client.instagram) {
-      opportunities.push('Sin presencia en Instagram - oportunidad de redes sociales');
-    }
+    const photoCount = client.photoCount ?? 0;
+    if (photoCount === 0) opportunities.push('[GBP] Sin fotos en Google Maps');
+    else if (photoCount < 5) opportunities.push('[GBP] Pocas fotos');
 
-    if (client.rating && client.rating >= 4.5 && client.reviewCount && client.reviewCount > 100) {
-      opportunities.push('Negocio exitoso - oportunidad de expansión digital');
-    }
-
-    // Check gaps if available
     if (client.gaps && Array.isArray(client.gaps)) {
       for (const gap of client.gaps) {
-        if (!opportunities.some((o) => o.includes(gap))) {
-          opportunities.push(gap);
-        }
+        if (!opportunities.some(o => o.includes(gap))) opportunities.push(gap);
       }
     }
 
@@ -997,6 +1009,16 @@ export class ProspectService {
       // 4. Import leads to database
       const importResult = await this.importHarvestedLeads(harvestedLeads, query);
 
+      // 5. Enrich Instagram for leads that have it (background, don't block)
+      const leadsWithInstagram = importResult.leads.filter(l => l.instagram);
+      if (leadsWithInstagram.length > 0) {
+        this.logger.log(`Enriching Instagram for ${leadsWithInstagram.length} leads...`);
+        // Run in background - don't await
+        this.enrichInstagramBatch(leadsWithInstagram.map(l => l.id)).catch(err => {
+          this.logger.warn(`Instagram batch enrichment failed: ${err.message}`);
+        });
+      }
+
       return {
         query,
         status: 'completed',
@@ -1060,9 +1082,16 @@ export class ProspectService {
               hours: (lead.hours ?? existing.hours) || undefined,
               attributes: (lead.attributes ?? existing.attributes) || undefined,
               reviewsUrl: lead.reviewsUrl || existing.reviewsUrl,
+              // Update social / enrichment fields from Harv3st v3.0
+              instagram: lead.instagram || existing.instagram,
+              facebook: lead.facebook || existing.facebook,
+              linkedin: lead.linkedin || existing.linkedin,
+              businessDescription: lead.businessDescription || existing.businessDescription,
+              ownerName: lead.ownerName || existing.ownerName,
               // Recalculate score with new data
               score: this.calculateOpportunityScore(lead),
               gaps: this.detectGapsFromHarvest(lead),
+              serviceOpportunities: this.detectServiceOpportunities(lead),
               // DO NOT update: stage, discardedAt, convertedAt, revivedAt, type, contactStatus
             },
           });
@@ -1106,7 +1135,11 @@ export class ProspectService {
             address: lead.fullAddress || '',
             phone: lead.phones,
             website: this.normalizeWebsite(lead.website),
-            instagram: (lead as any).instagram || null, // From Harv3st IG extraction
+            instagram: lead.instagram || null,
+            facebook: lead.facebook || null,
+            linkedin: lead.linkedin || null,
+            businessDescription: lead.businessDescription || null,
+            ownerName: lead.ownerName || null,
             rating: lead.averageRating,
             reviewCount: lead.reviewCount,
             latitude: lead.latitude,
@@ -1119,6 +1152,7 @@ export class ProspectService {
             stage: 'DISCOVERED',
             score,
             gaps,
+            serviceOpportunities: this.detectServiceOpportunities(lead),
             contactStatus: 'none',
             // Extended GMB fields
             photoCount: lead.photoCount,
@@ -1160,54 +1194,66 @@ export class ProspectService {
   }
 
   /**
-   * Calculate opportunity score for a harvested lead
+   * Calculate opportunity score for a harvested lead (v2.0)
+   * Aligned with Forma Digital's 4 service lines
    */
   private calculateOpportunityScore(lead: HarvestedLead): number {
-    let score = 0;
+    const FOOD_CATEGORIES = [
+      'restaurante', 'café', 'cafetería', 'bodega', 'pizzería', 'heladería',
+      'panadería', 'bar', 'pub', 'cervecería', 'comida', 'delivery',
+      'rotisería', 'sushi', 'hamburguesería', 'parrilla', 'comida rápida',
+    ];
+    const RETAIL_CATEGORIES = [
+      'tienda', 'local', 'boutique', 'ferretería', 'librería', 'kiosco',
+      'supermercado', 'minimarket', 'almacén', 'pollería', 'carnicería',
+      'verdulería', 'electrodomésticos', 'mueblería', 'indumentaria',
+    ];
 
-    // No website = marketing opportunity (+25)
-    if (!lead.website || this.isGoogleReviewsUrl(lead.website)) {
-      score += 25;
-    }
+    let rawScore = 0;
+    const hasWebsite = !!lead.website && !this.isGoogleReviewsUrl(lead.website);
+    const instagram = lead.instagram;
+    const facebook = lead.facebook;
+    const categoriesStr = (lead.categories ?? '').toLowerCase();
+    const attrsLower = (lead.attributes ?? []).map(a => String(a).toLowerCase());
 
-    // Low rating with traffic = struggling business (+20)
+    // Web rules
+    if (!hasWebsite) rawScore += 25;
+    else if (!instagram && !facebook) rawScore += 20;
+
+    // GBP rules
+    const photoCount = lead.photoCount ?? 0;
+    if (photoCount === 0) rawScore += 15;
+    else if (photoCount < 5) rawScore += 5;
+
     const rating = lead.averageRating ?? 5;
     const reviewCount = lead.reviewCount ?? 0;
-    if (reviewCount > 30 && rating < 4.0) {
-      score += 20;
-    } else if (reviewCount > 100 && rating < 4.5) {
-      score += 15;
-    }
+    if (reviewCount > 10 && rating < 4.0) rawScore += 10;
+    if (reviewCount > 50 && rating < 4.0) rawScore += 20;
 
-    // No photos = neglected listing (+15)
-    const photoCount = lead.photoCount ?? 0;
-    if (photoCount === 0) {
-      score += 15;
-    } else if (photoCount < 5) {
-      score += 5;
-    }
+    // Social rules
+    if (!instagram) rawScore += 15;
+    if (!facebook) rawScore += 10;
 
-    // High success = may want expansion (+10)
-    if (rating >= 4.5 && reviewCount > 100) {
-      score += 10;
-    }
+    // Food / delivery rules
+    const isFood = FOOD_CATEGORIES.some(cat => categoriesStr.includes(cat));
+    const hasDelivery = attrsLower.some(a => a.includes('domicilio') || a.includes('delivery'));
+    if (hasDelivery) rawScore += 15;
+    if (isFood) rawScore += 10;
 
-    // Has phone = contactable (+5)
-    if (lead.phones) {
-      score += 5;
-    }
+    // ERP rules
+    const isRetail = RETAIL_CATEGORIES.some(cat => categoriesStr.includes(cat));
+    if (isRetail && reviewCount > 100) rawScore += 10;
 
-    // Currently open = active (+5)
-    if (lead.isOpenNow === true) {
-      score += 5;
-    }
+    // Contact rules
+    if (lead.phones) rawScore += 5;
 
-    return Math.min(score, 100);
+    // Normalize to 0-100 (max raw ~170)
+    const maxRaw = 170;
+    return Math.min(Math.round((rawScore / maxRaw) * 100), 100);
   }
 
   /**
-   * Get score breakdown for UI display
-   * Shows which rules contributed to the score
+   * Get score breakdown for UI display (v2.0)
    */
   getScoreBreakdown(lead: {
     website?: string | null;
@@ -1215,54 +1261,34 @@ export class ProspectService {
     reviewCount?: number | null;
     photoCount?: number | null;
     phone?: string | null;
-    isOpenNow?: boolean | null;
-  }): { total: number; components: Array<{ label: string; points: number; applied: boolean }> } {
+    instagram?: string | null;
+    facebook?: string | null;
+    category?: string | null;
+    attributes?: any;
+  }): { total: number; components: Array<{ label: string; points: number; applied: boolean; service: string }> } {
     const rating = lead.rating ?? 5;
     const reviewCount = lead.reviewCount ?? 0;
     const photoCount = lead.photoCount ?? 0;
-    const noWebsite = !lead.website || (lead.website ? lead.website.includes('search.google.com') : false);
+    const hasWebsite = !!lead.website && !lead.website.includes('search.google.com');
+    const categoriesStr = (lead.category ?? '').toLowerCase();
+    const attrsLower = (Array.isArray(lead.attributes) ? lead.attributes : []).map((a: any) => String(a).toLowerCase());
+    const isFood = ['restaurante', 'café', 'cafetería', 'bar', 'comida', 'delivery'].some(c => categoriesStr.includes(c));
+    const hasDelivery = attrsLower.some((a: string) => a.includes('domicilio') || a.includes('delivery'));
+    const isRetail = ['tienda', 'local', 'ferretería', 'kiosco', 'supermercado'].some(c => categoriesStr.includes(c));
 
-    const components: Array<{ label: string; points: number; applied: boolean }> = [
-      {
-        label: 'Sin sitio web',
-        points: 25,
-        applied: noWebsite,
-      },
-      {
-        label: 'Rating bajo con tráfico',
-        points: 20,
-        applied: reviewCount > 30 && rating < 4.0,
-      },
-      {
-        label: 'Rating moderado, alto tráfico',
-        points: 15,
-        applied: reviewCount > 100 && rating < 4.5 && !(reviewCount > 30 && rating < 4.0),
-      },
-      {
-        label: 'Sin fotos',
-        points: 15,
-        applied: photoCount === 0,
-      },
-      {
-        label: 'Pocas fotos',
-        points: 5,
-        applied: photoCount > 0 && photoCount < 5,
-      },
-      {
-        label: 'Negocio exitoso',
-        points: 10,
-        applied: rating >= 4.5 && reviewCount > 100,
-      },
-      {
-        label: 'Tiene teléfono',
-        points: 5,
-        applied: Boolean(lead.phone),
-      },
-      {
-        label: 'Actualmente abierto',
-        points: 5,
-        applied: lead.isOpenNow === true,
-      },
+    const components: Array<{ label: string; points: number; applied: boolean; service: string }> = [
+      { label: 'Sin sitio web', points: 25, applied: !hasWebsite, service: 'web' },
+      { label: 'Sitio básico sin redes', points: 20, applied: hasWebsite && !lead.instagram && !lead.facebook, service: 'web' },
+      { label: 'Sin fotos', points: 15, applied: photoCount === 0, service: 'gbp' },
+      { label: 'Pocas fotos', points: 5, applied: photoCount > 0 && photoCount < 5, service: 'gbp' },
+      { label: 'Rating bajo', points: 10, applied: reviewCount > 10 && rating < 4.0, service: 'gbp' },
+      { label: 'Alto volumen, rating bajo', points: 20, applied: reviewCount > 50 && rating < 4.0, service: 'whatsapp' },
+      { label: 'Sin Instagram', points: 15, applied: !lead.instagram, service: 'web' },
+      { label: 'Sin Facebook', points: 10, applied: !lead.facebook, service: 'web' },
+      { label: 'Con delivery', points: 15, applied: hasDelivery, service: 'whatsapp' },
+      { label: 'Negocio de comida', points: 10, applied: isFood, service: 'whatsapp' },
+      { label: 'Retail con alto volumen', points: 10, applied: isRetail && reviewCount > 100, service: 'odoo' },
+      { label: 'Tiene teléfono', points: 5, applied: Boolean(lead.phone), service: 'contact' },
     ];
 
     const total = Math.min(
@@ -1274,28 +1300,97 @@ export class ProspectService {
   }
 
   /**
-   * Detect gaps/opportunities from harvested lead data
+   * Detect gaps/opportunities from harvested lead data (v2.0)
    */
   private detectGapsFromHarvest(lead: HarvestedLead): string[] {
     const gaps: string[] = [];
+    const categoriesStr = (lead.categories ?? '').toLowerCase();
+    const attrsLower = (lead.attributes ?? []).map(a => String(a).toLowerCase());
 
     if (!lead.website || this.isGoogleReviewsUrl(lead.website)) {
       gaps.push('Sin sitio web');
     }
 
+    if (!lead.instagram) gaps.push('Sin Instagram');
+    if (!lead.facebook) gaps.push('Sin Facebook');
+
+    const photoCount = lead.photoCount ?? 0;
+    if (photoCount === 0) gaps.push('Sin fotos en Google Maps');
+    else if (photoCount < 5) gaps.push('Pocas fotos');
+
     if (lead.averageRating && lead.averageRating < 4.0) {
       gaps.push('Rating bajo');
     }
 
-    if (!lead.photoCount || lead.photoCount < 5) {
-      gaps.push('Pocas fotos');
-    }
+    if (!lead.phones) gaps.push('Sin teléfono visible');
 
-    if (!lead.phones) {
-      gaps.push('Sin teléfono visible');
-    }
+    const isFood = ['restaurante', 'café', 'cafetería', 'bar', 'pizzería', 'comida', 'delivery']
+      .some(cat => categoriesStr.includes(cat));
+    const hasDelivery = attrsLower.some(a => a.includes('domicilio') || a.includes('delivery'));
+    if (isFood && hasDelivery) gaps.push('Delivery sin WhatsApp automatizado');
 
     return gaps;
+  }
+
+  /**
+   * Detect per-service opportunities (v2.0)
+   */
+  private detectServiceOpportunities(lead: HarvestedLead): any {
+    const hasWebsite = !!lead.website && !this.isGoogleReviewsUrl(lead.website);
+    const instagram = lead.instagram;
+    const facebook = lead.facebook;
+    const photoCount = lead.photoCount ?? 0;
+    const rating = lead.averageRating;
+    const reviewCount = lead.reviewCount ?? 0;
+    const categoriesStr = (lead.categories ?? '').toLowerCase();
+    const attrsLower = (lead.attributes ?? []).map(a => String(a).toLowerCase());
+
+    const FOOD_CATS = ['restaurante', 'café', 'cafetería', 'bar', 'pizzería', 'comida', 'delivery'];
+    const RETAIL_CATS = ['tienda', 'local', 'ferretería', 'kiosco', 'supermercado', 'minimarket', 'almacén'];
+
+    // Web
+    const web: any = { detected: false, reason: null, priority: null };
+    if (!hasWebsite) {
+      web.detected = true; web.reason = 'Sin sitio web'; web.priority = 'alta';
+    } else if (!instagram && !facebook) {
+      web.detected = true; web.reason = 'Sitio básico sin redes sociales'; web.priority = 'media';
+    }
+
+    // GBP
+    const gbp: any = { detected: false, reason: null, priority: null };
+    const gbpR: string[] = [];
+    if (photoCount === 0) gbpR.push('Sin fotos');
+    else if (photoCount < 5) gbpR.push('Pocas fotos');
+    if (rating && rating < 4.0 && reviewCount > 10) gbpR.push(`Rating bajo (${rating})`);
+    if (!instagram && !facebook) gbpR.push('Sin presencia en redes');
+    if (gbpR.length) {
+      gbp.detected = true; gbp.reason = gbpR.join(', ');
+      gbp.priority = photoCount === 0 || (rating !== null && rating < 3.5) ? 'alta' : 'media';
+    }
+
+    // WhatsApp
+    const whatsapp: any = { detected: false, reason: null, priority: null };
+    const waR: string[] = [];
+    const isFood = FOOD_CATS.some(c => categoriesStr.includes(c));
+    const hasDelivery = attrsLower.some(a => a.includes('domicilio') || a.includes('delivery'));
+    if (isFood) waR.push('Negocio de comida');
+    if (hasDelivery) waR.push('Ofrece delivery');
+    if (reviewCount > 50 && rating && rating < 4.2) waR.push('Alto volumen con rating mejorable');
+    if (waR.length) {
+      whatsapp.detected = true; whatsapp.reason = waR.join(', ');
+      whatsapp.priority = isFood && reviewCount > 50 ? 'alta' : 'media';
+    }
+
+    // Odoo
+    const odoo: any = { detected: false, reason: null, priority: null };
+    const isRetail = RETAIL_CATS.some(c => categoriesStr.includes(c));
+    if (isRetail || reviewCount > 200) {
+      odoo.detected = true;
+      odoo.reason = isRetail ? 'Retail/comercio' : 'Alto volumen de operación';
+      odoo.priority = isRetail && reviewCount > 200 ? 'alta' : 'media';
+    }
+
+    return { web, gbp, whatsapp, odoo };
   }
 
   /**
@@ -1317,6 +1412,21 @@ export class ProspectService {
 
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Batch enrich Instagram data for leads
+   */
+  private async enrichInstagramBatch(clientIds: string[]): Promise<void> {
+    for (const clientId of clientIds) {
+      try {
+        await this.pipelineEnrichmentService.enrichInstagram(clientId);
+        // Rate limit: 1 request per 7 seconds
+        await this.sleep(7000);
+      } catch (err) {
+        // Silently skip - Instagram enrichment is best-effort
+      }
+    }
   }
 
   /**
