@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -21,7 +21,7 @@ export default function LoginPage() {
             const res = await fetch(`${API_BASE}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ username, password })
             });
 
             if (!res.ok) {
@@ -63,11 +63,11 @@ export default function LoginPage() {
                 <NeoCard className="p-8">
                     <form onSubmit={handleLogin} className="space-y-6">
                         <NeoInput
-                            label="Email"
-                            type="email"
-                            placeholder="tu@email.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            label="Usuario"
+                            type="text"
+                            placeholder="admin, lucas o marcos"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             required
                         />
 

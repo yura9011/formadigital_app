@@ -21,7 +21,7 @@ describe('AuthController', () => {
         controller = new AuthController(prisma as any);
     });
 
-    it('normalizes and authenticates an allowed user', async () => {
+    it('normalizes and authenticates an allowed username', async () => {
         prisma.user.findUnique.mockResolvedValue({
             id: 'user-id',
             email: 'admin@formadigital.com',
@@ -30,7 +30,7 @@ describe('AuthController', () => {
         });
 
         const result = await controller.login({
-            email: ' Admin@FormaDigital.com ',
+            username: ' Admin ',
             password: 'test-password',
         });
 
@@ -46,7 +46,7 @@ describe('AuthController', () => {
 
     it('rejects users outside the login allowlist', async () => {
         await expect(controller.login({
-            email: 'otro@formadigital.com',
+            username: 'otro',
             password: 'test-password',
         })).rejects.toBeInstanceOf(UnauthorizedException);
 
