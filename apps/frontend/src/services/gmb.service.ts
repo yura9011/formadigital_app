@@ -47,7 +47,7 @@ export async function searchCompetitors(params: SearchParams): Promise<Business[
 }
 
 export async function performAudit(
-    clientUrl: string, // Not used in backend logic, but kept for interface compatibility if needed
+    clientUrl: string,
     clientData: Business | undefined,
     competitors: Business[],
     language: 'en' | 'es',
@@ -55,18 +55,18 @@ export async function performAudit(
     productsList: string = "",
     zoneContext: string = ""
 ): Promise<AuditResult> {
-    const res = await fetch(`${API_URL}/gmb/audit`, {
+    const res = await fetch(`${API_URL}/gmb/audit/ai`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+            clientUrl,
             clientData,
             competitors,
             language,
             userSearchAddress,
             productsList,
-            zoneContext
         }),
     });
 
