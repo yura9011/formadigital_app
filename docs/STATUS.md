@@ -4,18 +4,18 @@ Actualizado: 2026-06-08
 
 ## Producción
 
-- Último cambio funcional validado: `f3afae5`. Consultar `.runtime/deploy/deployed.sha` para el SHA desplegado actual.
+- Último cambio validado y desplegado: `a82282e`. Consultar `.runtime/deploy/deployed.sha` para el SHA desplegado actual.
 - Frontend público: `http://2.24.89.243:3001`.
 - Backend público: `http://2.24.89.243:3000`.
 - Harv3st privado: `http://127.0.0.1:5050`.
 - PostgreSQL 16 privado: `127.0.0.1:5433`.
 - Backend, frontend y Harv3st están administrados por el PM2 aislado en `.runtime/pm2`.
 - Deploy automático activo: CI publica la rama `deploy`; el VPS consulta cada minuto.
-- Prisma: 9 migraciones baselinadas y sin migraciones pendientes al último deploy.
+- Prisma: 10 migraciones y ninguna pendiente al deploy `a82282e`.
 
 ## Último cambio (2026-06-08)
 
-Refactor checkpoint: fases 1.1 y 1.2 del plan completadas. Los tipos de leads/clientes ahora tienen una única fuente compartida y la URL del backend quedó centralizada en `apps/frontend/src/config/api.ts`. Las fases 1.3-5 siguen pendientes.
+Refactor checkpoint desplegado: fases 1.1 y 1.2 del plan completadas. Los tipos de leads/clientes ahora tienen una única fuente compartida y la URL del backend quedó centralizada en `apps/frontend/src/config/api.ts`. Las fases 1.3-5 siguen pendientes.
 
 Cambio funcional anterior: scoring v2.0 y detección de oportunidades por servicio. Ver `CHANGELOG.md` [1.1.0] para detalles completos.
 
@@ -34,7 +34,7 @@ La migración de los campos `businessDescription`, `ownerName` y `serviceOpportu
 - Frontend build correcto después del checkpoint de refactor.
 - Backend tests: `40/40` aprobados.
 - Harv3st compila correctamente.
-- Frontend, backend y proxy Harv3st responden `200`.
+- Frontend público, backend público y proxy Harv3st responden `200` después del deploy `a82282e`.
 
 ## Riesgos conocidos
 
@@ -43,6 +43,7 @@ La migración de los campos `businessDescription`, `ownerName` y `serviceOpportu
 3. **Reinicio del VPS:** PM2 guarda su lista, pero no existe una unidad systemd instalada para asegurar arranque automático después de reinicio. Debe validarse y resolverse sin tocar servicios ajenos.
 4. **Navegación legacy:** todavía existen redirecciones internas con `window.location.href`; resolver en la fase 1.4 del plan.
 5. **Dependencias:** `npm audit` reporta vulnerabilidades; deben revisarse de forma controlada, sin actualizaciones mayores automáticas.
+6. **Respaldos root aislados:** el deploy heredó artefactos creados como root. Se apartaron de la ejecución en `.git.root-owned`, `apps/backend/dist.root-owned` y `apps/frontend/.next.root-owned`; requieren acceso administrativo para eliminarlos, pero no afectan deploys futuros.
 
 ## Próximo trabajo recomendado
 
