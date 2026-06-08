@@ -29,7 +29,7 @@ interface ReviewStats {
   ratingDistribution: Record<number, number>;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3000';
+import { API_URL as API_BASE } from '@/config/api';
 
 export default function ReviewsTab() {
   const [locations, setLocations] = useState<Location[]>([]);

@@ -3,7 +3,7 @@
  * API client for pipeline management endpoints
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_URL as API_BASE } from '@/config/api';
 
 export type PipelineStage = 'DISCOVERED' | 'ANALYZED' | 'CONTACTED' | 'RESPONDED' | 'CONVERTED' | 'DISCARDED';
 

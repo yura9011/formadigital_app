@@ -84,7 +84,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onUpdate }) => {
         }
     };
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3000';
+    const { API_URL } = require('@/config/api');
 
     return (
         <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden mb-4">

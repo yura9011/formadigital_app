@@ -15,7 +15,7 @@ interface AgentAnalysisButtonProps {
     onComplete?: (results: any) => void;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_URL as API_BASE } from '@/config/api';
 
 export default function AgentAnalysisButton({ query, location, apiKeys, onComplete }: AgentAnalysisButtonProps) {
     const [isRunning, setIsRunning] = useState(false);

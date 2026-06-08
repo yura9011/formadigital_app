@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { withAuth } from '@/components/auth/withAuth';
 import { CalendarEventModal } from '@/components/calendar/CalendarEventModal';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { API_URL as API_BASE } from '@/config/api';
 
 interface ClientNote {
     id: string;

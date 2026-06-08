@@ -1,8 +1,6 @@
 
+import { API_URL } from '../config/api';
 import { Business, SearchParams, AuditResult, StoredClient } from '../components/gmb/types';
-
-// Assuming Backend is running on localhost:3000
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3000';
 
 // Agency Client type (from /agency/overview)
 export interface AgencyClient {

@@ -1,3 +1,5 @@
+import { API_URL } from '@/config/api';
+
 /**
  * Types for Harv3st integration
  * These types match the data structures returned by the Harv3st scraper API
@@ -135,7 +137,7 @@ export interface Harv3stConfig {
 }
 
 export const DEFAULT_HARV3ST_CONFIG: Harv3stConfig = {
-  baseUrl: (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000') + '/api/harv3st',
+  baseUrl: API_URL + '/api/harv3st',
   pollIntervalMs: 2000,
   connectionCheckIntervalMs: 30000,
 };

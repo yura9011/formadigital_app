@@ -5,7 +5,7 @@ import { NeoCard } from '../components/neo/NeoCard';
 import { NeoButton } from '../components/neo/NeoButton';
 import { withAuth } from '../components/auth/withAuth';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { API_URL as API_BASE } from '@/config/api';
 
 interface Reminder {
   id: string;

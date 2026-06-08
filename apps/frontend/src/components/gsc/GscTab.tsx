@@ -7,7 +7,7 @@ interface DailyData { date: string; clicks: number; impressions: number; ctr: nu
 interface AnalyticsSummary { totalClicks: number; totalImpressions: number; averageCtr: number; averagePosition: number; }
 interface SearchAnalytics { summary: AnalyticsSummary; queries: any[]; pages: any[]; dailyData: DailyData[]; }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3000';
+import { API_URL as API_BASE } from '@/config/api';
 
 export default function GscTab() {
   const [properties, setProperties] = useState<GscProperty[]>([]);

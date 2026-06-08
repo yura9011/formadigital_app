@@ -14,7 +14,7 @@ interface Integration {
 }
 
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_URL } from '@/config/api';
 
 export default function PostComposer({ onPostCreated, initialDate }: { onPostCreated: () => void, initialDate?: string | null }) {
     const [content, setContent] = useState('🚀 Prueba de Sistema\n\nVerificando publicación simultánea en Facebook e Instagram.\n\n#FormaDigital #DevMode');

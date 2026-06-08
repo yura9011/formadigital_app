@@ -6,7 +6,7 @@ import { NeoButton } from '../../components/neo/NeoButton';
 import { NeoInput } from '../../components/neo/NeoInput';
 import toast from 'react-hot-toast';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_URL as API_BASE } from '@/config/api';
 
 export default function LoginPage() {
     const [username, setUsername] = useState('');

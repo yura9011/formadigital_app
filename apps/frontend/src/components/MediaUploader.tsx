@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { API_URL } from '@/config/api';
 
 interface MediaUploaderProps {
     onUpload: (urls: string[]) => void;
@@ -39,7 +40,6 @@ export function MediaUploader({ onUpload, initialUrls = [] }: MediaUploaderProps
     const uploadFiles = async (files: File[]) => {
         setUploading(true);
         const newUrls: string[] = [];
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
         // Create local previews immediately
         const localPreviews = files.map(file => URL.createObjectURL(file));

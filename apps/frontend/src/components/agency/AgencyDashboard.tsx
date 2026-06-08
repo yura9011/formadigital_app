@@ -30,7 +30,7 @@ interface ReviewAlert {
   urgent: boolean;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3000';
+import { API_URL as API_BASE } from '@/config/api';
 
 export default function AgencyDashboard() {
   const [overview, setOverview] = useState<AgencyOverview | null>(null);

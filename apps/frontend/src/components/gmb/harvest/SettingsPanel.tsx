@@ -9,8 +9,10 @@ interface SettingsPanelProps {
   onClose: () => void;
 }
 
+import { API_URL } from '@/config/api';
+
 const STORAGE_KEY = 'harv3st_server_url';
-const DEFAULT_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000') + '/api/harv3st';
+const DEFAULT_URL = API_URL + '/api/harv3st';
 
 const TRANSLATIONS = {
   en: {
