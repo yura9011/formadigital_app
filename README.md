@@ -9,37 +9,20 @@ Plataforma de prospección y gestión de negocios locales. Incluye scraping de G
 - **Scraper**: Python + Playwright (Harv3st)
 - **IA**: Google Gemini
 
-## Instalacion
+## Instalacion y uso
+
+Seguir `DEVELOPMENT.md` para preparar y ejecutar el entorno local. Cada aplicación administra sus propias dependencias; no ejecutar `npm install` desde la raíz.
+
+Resumen:
 
 ```bash
-# 1. Instalar dependencias
-npm install
-
-# 2. Iniciar PostgreSQL y Redis
 docker compose up -d
-
-# 3. Configurar base de datos
-cd apps/backend
-npx prisma db push
-npx prisma db seed
-
-# 4. Instalar scraper
-cd services/harv3st
-pip install -r requirements.txt
-playwright install
+cd apps/backend && npm install
+cd ../frontend && npm install
+cd ../../services/harv3st && python3 -m venv .venv
 ```
 
-## Uso
-
-```bash
-# Iniciar todos los servicios
-dev.bat
-
-# O manualmente:
-cd services/harv3st && python manager.py server  # Puerto 5050
-cd apps/backend && npm run start:dev             # Puerto 3000
-cd apps/frontend && npm run dev -- -p 3001       # Puerto 3001
-```
+Para operación, deploy y recuperación consultar `docs/RUNBOOK.md`.
 
 ## Modulos
 
@@ -56,12 +39,15 @@ Leads listos para contactar, sistema de snooze, validacion de canales.
 
 ## Documentacion para Agentes
 
+Todo agente debe comenzar por `AGENTS.md`. La documentacion autoritativa es:
+
 | Archivo | Proposito |
 |---------|-----------|
-| `.agent/context.md` | Estado actual del proyecto |
-| `.agent/workflows/` | Workflows ejecutables |
-| `SALES_PLAYBOOK.md` | Manual de ventas |
-| `.github/agents/` | Definiciones de agentes tecnicos |
+| `AGENTS.md` | Reglas obligatorias y proceso de relevo |
+| `docs/STATUS.md` | Estado productivo, riesgos y siguiente trabajo |
+| `docs/ARCHITECTURE.md` | Componentes y flujo de datos |
+| `docs/RUNBOOK.md` | Desarrollo, deploy y operacion |
+| `DEVELOPMENT.md` | Guia rapida de desarrollo local |
 
 ## API Endpoints
 

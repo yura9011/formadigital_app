@@ -41,7 +41,8 @@ En Windows PowerShell, usá `copy` en lugar de `cp`, `python` en lugar de
 ```
 
 Completá solamente las claves que necesites en los archivos `.env`, sin
-versionarlos.
+versionarlos. Para crear los tres usuarios locales mediante el seed, definí
+`DEFAULT_USER_PASSWORD` en `apps/backend/.env`; nunca documentes su valor.
 
 ## Ejecución local
 
