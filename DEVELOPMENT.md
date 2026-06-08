@@ -63,8 +63,9 @@ Verificación:
 
 ## Deploy
 
-Cada push a `main` ejecuta builds y tests en GitHub Actions. Si pasan, el
-workflow se conecta al VPS y ejecuta `/opt/data/formadigital_app/deploy.sh`.
+Cada push a `main` ejecuta builds y tests en GitHub Actions. Si pasan, Actions
+actualiza la referencia `deploy`. El VPS la consulta cada minuto y ejecuta
+`/opt/data/formadigital_app/deploy.sh` cuando encuentra una versión nueva.
 
 El script actualiza el repositorio, instala dependencias modificadas, aplica
 migraciones Prisma, construye backend/frontend, recarga los tres procesos PM2

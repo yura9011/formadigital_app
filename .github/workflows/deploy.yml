@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 concurrency:
   group: formadigital-production
   cancel-in-progress: false
@@ -49,22 +52,13 @@ jobs:
           python -m pip install -r requirements.txt
           python -m compileall -q app core config.py manager.py
 
-  deploy:
+  publish:
     needs: verify
     runs-on: ubuntu-latest
     steps:
-      - name: Configure SSH
-        env:
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
-        run: |
-          install -m 700 -d ~/.ssh
-          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/formadigital
-          chmod 600 ~/.ssh/formadigital
-          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Deploy production
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-        run: ssh -i ~/.ssh/formadigital "$VPS_USER@$VPS_HOST" 'cd /opt/data/formadigital_app && git fetch origin main && git checkout main && git pull --ff-only origin main && ./deploy.sh'
+      - name: Mark commit for production
+        run: git push origin HEAD:deploy

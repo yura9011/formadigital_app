@@ -13,9 +13,9 @@ mkdir -p "$RUNTIME_DIR/deploy" "$RUNTIME_DIR/logs"
 exec 9>"$RUNTIME_DIR/deploy/deploy.lock"
 flock -n 9 || { echo "Another deploy is already running."; exit 1; }
 
-git fetch origin main
+git fetch origin deploy
 git checkout main
-git pull --ff-only origin main
+git merge --ff-only origin/deploy
 
 install_node_dependencies() {
   local directory=$1
@@ -59,4 +59,5 @@ curl --fail --silent --show-error http://127.0.0.1:3001/ >/dev/null
 curl --fail --silent --show-error http://127.0.0.1:3000/api/pipeline/summary >/dev/null
 curl --fail --silent --show-error http://127.0.0.1:3000/api/harv3st/api/status >/dev/null
 
+git rev-parse origin/deploy > "$RUNTIME_DIR/deploy/deployed.sha"
 echo "Deploy completed: $(git rev-parse --short HEAD)"
