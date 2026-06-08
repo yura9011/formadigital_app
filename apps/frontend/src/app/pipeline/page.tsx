@@ -5,12 +5,9 @@ import { NeoButton } from '@/components/neo/NeoButton';
 import { NeoCard } from '@/components/neo/NeoCard';
 import toast from 'react-hot-toast';
 import { withAuth } from '@/components/auth/withAuth';
+import type { LeadDetail, PipelineLead as Lead, PipelineMetrics, PipelineStage } from '@/types/lead';
 import {
-  PipelineStage,
   PipelineSummary,
-  Lead,
-  LeadDetail,
-  PipelineMetrics,
   getPipelineSummary,
   getLeadsByStage,
   getLeadDetail,

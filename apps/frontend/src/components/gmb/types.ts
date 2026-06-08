@@ -1,3 +1,6 @@
+import type { ClientNote, ClientType } from '@/types/client';
+
+export type { ClientNote, ClientType } from '@/types/client';
 
 export type Language = 'en' | 'es';
 
@@ -33,15 +36,6 @@ export interface Business {
     priceLevel?: number | null;
     harvestScore?: number;
     capturedAt?: number;
-}
-
-export type ClientType = 'CLIENT' | 'LEAD' | 'COMPETITOR';
-
-export interface ClientNote {
-    id: string;
-    content: string;
-    createdAt: string;
-    clientId: string;
 }
 
 export type ProjectStatus = 'PLANNING' | 'IN_PROGRESS' | 'COMPLETED' | 'ON_HOLD' | 'CANCELLED';

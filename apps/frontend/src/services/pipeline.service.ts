@@ -5,87 +5,29 @@
 
 import { API_URL as API_BASE } from '@/config/api';
 
-export type PipelineStage = 'DISCOVERED' | 'ANALYZED' | 'CONTACTED' | 'RESPONDED' | 'CONVERTED' | 'DISCARDED';
+import type {
+  LeadDetail,
+  PaginatedLeads,
+  PipelineLead,
+  PipelineMetrics,
+  PipelineStage,
+  ScoreBreakdown,
+  StageTransition,
+} from '@/types/lead';
+
+export type {
+  LeadDetail,
+  PaginatedLeads,
+  PipelineMetrics,
+  PipelineStage,
+  ScoreBreakdown,
+  StageTransition,
+};
+export type Lead = PipelineLead;
 
 export interface PipelineSummary {
   total: number;
   byStage: Record<PipelineStage, number>;
-}
-
-export interface Lead {
-  id: string;
-  name: string;
-  address: string;
-  phone?: string | null;
-  website?: string | null;
-  category?: string | null;
-  rating?: number | null;
-  reviewCount?: number | null;
-  score?: number | null;
-  tier?: string | null;
-  stage: PipelineStage;
-  daysInStage: number;
-  instagram?: string | null;
-  email?: string | null;
-  instagramFollowers?: number | null;
-  instagramPosts?: number | null;
-  photoCount?: number | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PaginatedLeads {
-  leads: Lead[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface ScoreComponent {
-  ruleId: string;
-  ruleName: string;
-  description: string;
-  points: number;
-  applied: boolean;
-  reason?: string;
-}
-
-export interface ScoreBreakdown {
-  total: number;
-  maxScore: number;
-  components: ScoreComponent[];
-  calculatedAt: string;
-}
-
-export interface StageTransition {
-  id: string;
-  clientId: string;
-  fromStage: PipelineStage;
-  toStage: PipelineStage;
-  reason?: string;
-  actorType: 'USER' | 'AGENT' | 'SYSTEM';
-  actorId?: string;
-  createdAt: string;
-}
-
-export interface LeadDetail extends Lead {
-  scoreBreakdown: ScoreBreakdown;
-  transitionHistory: StageTransition[];
-  gaps?: string[];
-  instagramBio?: string | null;
-  instagramLastPostDate?: string | null;
-  hours?: any;
-  attributes?: string[];
-}
-
-export interface PipelineMetrics {
-  totalLeads: number;
-  conversionRate: number;
-  averageDaysPerStage: Record<PipelineStage, number>;
-  leadsConvertedThisMonth: number;
-  leadsDiscardedThisMonth: number;
-  topCategories: { category: string; count: number }[];
 }
 
 export interface ScoringRule {
@@ -117,7 +59,7 @@ export async function getLeadsByStage(options: {
   sortBy?: 'score' | 'createdAt' | 'name' | 'daysInStage';
   sortOrder?: 'asc' | 'desc';
   search?: string;
-}): Promise<PaginatedLeads> {
+}): Promise<PaginatedLeads<PipelineLead>> {
   const params = new URLSearchParams();
   if (options.stage) params.append('stage', options.stage);
   if (options.page) params.append('page', String(options.page));

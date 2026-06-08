@@ -3,26 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { api } from '@/config/api';
-
-interface Client {
-    id: string;
-    name: string;
-    address: string;
-    category?: string;
-    phone?: string;
-    instagram?: string;
-    website?: string;
-    rating?: number;
-    reviewCount?: number;
-    tier?: string;
-    score?: number;
-    type: 'LEAD' | 'CLIENT' | 'COMPETITOR';
-    createdAt: string;
-    updatedAt: string;
-    audits?: { id: string; createdAt: string }[];
-}
-
-type FilterType = 'ALL' | 'LEAD' | 'CLIENT';
+import type { Client, FilterType } from '@/types/client';
 
 export default function LeadsPage() {
     const [clients, setClients] = useState<Client[]>([]);

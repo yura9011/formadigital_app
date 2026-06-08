@@ -15,13 +15,11 @@ Actualizado: 2026-06-08
 
 ## Último cambio (2026-06-08)
 
-Scoring v2.0 y detección de oportunidades por servicio. Ver `CHANGELOG.md` [1.1.0] para detalles completos.
+Refactor checkpoint: fases 1.1 y 1.2 del plan completadas. Los tipos de leads/clientes ahora tienen una única fuente compartida y la URL del backend quedó centralizada en `apps/frontend/src/config/api.ts`. Las fases 1.3-5 siguen pendientes.
 
-**Pendiente de deploy**: Crear migración Prisma para los nuevos campos (`businessDescription`, `ownerName`, `serviceOpportunities`) antes de hacer push a main.
+Cambio funcional anterior: scoring v2.0 y detección de oportunidades por servicio. Ver `CHANGELOG.md` [1.1.0] para detalles completos.
 
-```bash
-cd apps/backend && npx prisma migrate dev --name add-service-opportunities
-```
+La migración de los campos `businessDescription`, `ownerName` y `serviceOpportunities` ya existe en `apps/backend/prisma/migrations/20260608000000_add_service_opportunities`.
 
 ## Login
 
@@ -32,8 +30,8 @@ cd apps/backend && npx prisma migrate dev --name add-service-opportunities
 
 ## Validación reciente
 
-- Backend build correcto.
-- Frontend build correcto.
+- Backend build correcto después del checkpoint de refactor.
+- Frontend build correcto después del checkpoint de refactor.
 - Backend tests: `40/40` aprobados.
 - Harv3st compila correctamente.
 - Frontend, backend y proxy Harv3st responden `200`.
@@ -43,12 +41,12 @@ cd apps/backend && npx prisma migrate dev --name add-service-opportunities
 1. **Autorización incompleta:** el login guarda identidad en `localStorage`; la API no exige JWT ni sesión real. Prioridad alta antes de manejar datos sensibles o abrir acceso más amplio.
 2. **HTTP público:** frontend y backend están expuestos por IP y sin HTTPS ni reverse proxy.
 3. **Reinicio del VPS:** PM2 guarda su lista, pero no existe una unidad systemd instalada para asegurar arranque automático después de reinicio. Debe validarse y resolverse sin tocar servicios ajenos.
-4. **URLs legacy:** todavía existen algunos defaults `localhost:3001` en páginas antiguas; revisar cuando se trabaje en esas rutas.
+4. **Navegación legacy:** todavía existen redirecciones internas con `window.location.href`; resolver en la fase 1.4 del plan.
 5. **Dependencias:** `npm audit` reporta vulnerabilidades; deben revisarse de forma controlada, sin actualizaciones mayores automáticas.
 
 ## Próximo trabajo recomendado
 
-1. **Deploy del scoring v2.0**: Crear migración Prisma y hacer push a main.
+1. Completar y validar las fases 1.3 PageLayout y 1.4 navegación del plan de refactor.
 2. **Autenticación y autorización real** de extremo a extremo:
    - Sesión o JWT firmado por backend.
    - Middleware/guards en endpoints privados.

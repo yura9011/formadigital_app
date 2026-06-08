@@ -11,16 +11,18 @@ La app tiene 19 páginas, 40+ componentes y ~23,000 líneas de código. Hay 3 si
 ## Fase 1: Fundamentos (sin romper nada)
 
 ### 1.1 Tipos compartidos
-- [ ] Crear `apps/frontend/src/types/lead.ts` con interfaz unificada `Lead` (merge de las 4 definiciones actuales)
-- [ ] Crear `apps/frontend/src/types/client.ts` con interfaz unificada `Client`
-- [ ] Reemplazar definiciones locales en `prospect/page.tsx`, `pipeline/page.tsx`, `crm/page.tsx`, `gmb/today/page.tsx`, `gmb/leads/page.tsx` por imports del tipo compartido
-- [ ] Actualizar `components/gmb/types.ts` para re-exportar los tipos compartidos
+- [x] Crear `apps/frontend/src/types/lead.ts` con interfaz unificada `Lead` (merge de las 4 definiciones actuales)
+- [x] Crear `apps/frontend/src/types/client.ts` como punto de entrada compartido para `Client`
+- [x] Reemplazar definiciones locales en `prospect/page.tsx`, `pipeline/page.tsx`, `crm/page.tsx`, `gmb/today/page.tsx`, `gmb/leads/page.tsx` por imports del tipo compartido
+- [x] Actualizar `components/gmb/types.ts` para re-exportar los tipos compartidos
+
+Nota: `Lead` contiene los campos comunes y `ProspectLead`, `PipelineLead` y `OutreachLead` expresan los campos obligatorios de cada respuesta API sin duplicar el modelo base.
 
 ### 1.2 API_URL estandarizada
-- [ ] Auditar los 15 archivos que hacen fetch y verificar que usen `import { API_URL } from '@/config/api'`
-- [ ] Eliminar todos los `const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'` inline
-- [ ] Corregir los que usan fallback `3001` (CRM, calendar, home) — el backend corre en `3000`
-- [ ] Unificar los que usan `127.0.0.1` vs `localhost`
+- [x] Auditar los archivos que hacen fetch y verificar que usen `@/config/api`
+- [x] Eliminar todos los `const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'` inline
+- [x] Corregir los que usan fallback `3001` (CRM, calendar, home) — el backend corre en `3000`
+- [x] Unificar los que usan `127.0.0.1` vs `localhost`
 
 ### 1.3 PageLayout compartido
 - [ ] Crear `apps/frontend/src/components/layout/PageLayout.tsx` con header, botón "Volver", título
@@ -204,11 +206,19 @@ La app tiene 19 páginas, 40+ componentes y ~23,000 líneas de código. Hay 3 si
 
 ---
 
+## Checkpoint 2026-06-08
+
+- Fases 1.1 y 1.2 retomadas y terminadas.
+- Frontend: `npm run build` correcto.
+- Backend: `npm run build` correcto.
+- Backend: `npm test -- --runInBand` correcto, 40/40 tests.
+- Siguiente alcance: fase 1.3 PageLayout y fase 1.4 navegación. No iniciar fases 2-5 antes de completar y validar fase 1.
+
 ## Progreso
 
 ### Fase 1: Fundamentos
-- [ ] 1.1 Tipos compartidos
-- [ ] 1.2 API_URL estandarizada
+- [x] 1.1 Tipos compartidos
+- [x] 1.2 API_URL estandarizada
 - [ ] 1.3 PageLayout compartido
 - [ ] 1.4 Navegación con Next.js Router
 

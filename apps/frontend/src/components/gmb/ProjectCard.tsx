@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { Project, ProjectPhase, PhaseStatus } from './types';
 import * as gmbService from '../../services/gmb.service';
+import { API_URL } from '@/config/api';
 
 interface ProjectCardProps {
     project: Project;
@@ -83,8 +84,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onUpdate }) => {
             toast.error("Failed to reorder");
         }
     };
-
-    const { API_URL } = require('@/config/api');
 
     return (
         <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden mb-4">

@@ -167,9 +167,33 @@ export interface Lead {
   updatedAt?: string;
 }
 
+// --- Lead views ---
+// API endpoints expose different required subsets of the same lead.
+
+export interface ProspectLead extends Lead {
+  opportunityScore: number;
+  contactStatus: ContactStatus;
+  availableChannels: OutreachChannel[];
+}
+
+export interface PipelineLead extends Lead {
+  stage: PipelineStage;
+  daysInStage: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OutreachLead extends Lead {
+  contactAttempts: number;
+  hasValidWhatsapp: boolean;
+  hasValidInstagram: boolean;
+  hasValidEmail: boolean;
+  daysInStage: number;
+}
+
 // --- LeadDetail (extends Lead) ---
 
-export interface LeadDetail extends Lead {
+export interface LeadDetail extends PipelineLead {
   scoreBreakdown?: ScoreBreakdown;
   transitionHistory?: StageTransition[];
   hours?: any;
@@ -181,6 +205,7 @@ export interface LeadDetail extends Lead {
 
 export interface Client extends Lead {
   type: ClientType;
+  createdAt: string;
   notes?: ClientNote[];
   audits?: { id: string; createdAt: string }[];
 }
@@ -212,8 +237,8 @@ export interface PipelineMetrics {
 
 // --- Paginated response ---
 
-export interface PaginatedLeads {
-  leads: Lead[];
+export interface PaginatedLeads<TLead extends Lead = Lead> {
+  leads: TLead[];
   total: number;
   page: number;
   limit: number;

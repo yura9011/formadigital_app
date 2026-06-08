@@ -5,78 +5,20 @@ import { NeoButton } from '@/components/neo/NeoButton';
 import { NeoCard } from '@/components/neo/NeoCard';
 import toast from 'react-hot-toast';
 import { withAuth } from '@/components/auth/withAuth';
+import type {
+  ContactRecord,
+  ContactStatus,
+  MessageTemplate,
+  OutreachChannel,
+  ProspectLead as Lead,
+  RecentContact,
+  ServiceOpportunities,
+} from '@/types/lead';
 
 import { API_URL as API_BASE } from '@/config/api';
 
 // Types
-type ContactStatus = 'none' | 'pending' | 'approved' | 'sent' | 'rejected' | 'responded';
-type OutreachChannel = 'instagram' | 'whatsapp' | 'email';
 type TabType = 'leads' | 'contacts' | 'templates' | 'stats';
-
-interface ServiceOpportunity {
-  detected: boolean;
-  reason: string | null;
-  priority: 'alta' | 'media' | 'baja' | null;
-}
-
-interface ServiceOpportunities {
-  web: ServiceOpportunity;
-  gbp: ServiceOpportunity;
-  whatsapp: ServiceOpportunity;
-  odoo: ServiceOpportunity;
-}
-
-interface Lead {
-  id: string;
-  name: string;
-  address: string;
-  phone?: string | null;
-  website?: string | null;
-  instagram?: string | null;
-  email?: string | null;
-  rating?: number | null;
-  reviewCount?: number | null;
-  opportunityScore: number;
-  categories?: string | null;
-  contactStatus: ContactStatus;
-  availableChannels: OutreachChannel[];
-  serviceOpportunities?: ServiceOpportunities;
-  ownerName?: string | null;
-}
-
-interface ContactRecord {
-  id: string;
-  leadId: string;
-  leadName: string;
-  channel: OutreachChannel;
-  message: string;
-  status: ContactStatus;
-  notes?: string | null;
-  createdAt: string;
-  sentAt?: string;
-  respondedAt?: string;
-}
-
-interface MessageTemplate {
-  id: string;
-  name: string;
-  channel: OutreachChannel;
-  scenario: string;
-  content: string;
-  isDefault: boolean;
-}
-
-interface RecentContact {
-  id: string;
-  leadId: string;
-  leadName: string;
-  leadCategory: string | null;
-  channel: OutreachChannel;
-  status: ContactStatus;
-  createdAt: string;
-  sentAt?: string;
-  respondedAt?: string;
-}
 
 interface TopLead {
   id: string;

@@ -161,7 +161,7 @@ describe('GmbService', () => {
         it('should throw error if clientData is undefined', async () => {
             await expect(
                 service.performAudit(undefined, mockCompetitors, 'es', 'Test Address')
-            ).rejects.toThrow('Client data is required for audit');
+            ).rejects.toThrow('Se requieren datos del cliente para la auditoría');
         });
 
         it('should create client if not exists in database', async () => {

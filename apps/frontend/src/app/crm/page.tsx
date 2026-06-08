@@ -6,27 +6,9 @@ import { NeoCard } from '@/components/neo/NeoCard';
 import toast from 'react-hot-toast';
 import { withAuth } from '@/components/auth/withAuth';
 import { CalendarEventModal } from '@/components/calendar/CalendarEventModal';
+import type { Client, FilterType } from '@/types/client';
 
 import { API_URL as API_BASE } from '@/config/api';
-
-interface ClientNote {
-    id: string;
-    content: string;
-    createdAt: string;
-}
-
-interface Client {
-    id: string;
-    name: string;
-    phone?: string;
-    address?: string;
-    category?: string;
-    type: 'LEAD' | 'CLIENT' | 'COMPETITOR';
-    notes?: ClientNote[];
-    createdAt: string;
-}
-
-type FilterType = 'ALL' | 'LEAD' | 'CLIENT';
 
 function CRMPage() {
     const [clients, setClients] = useState<Client[]>([]);

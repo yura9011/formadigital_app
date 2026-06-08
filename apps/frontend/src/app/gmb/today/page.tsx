@@ -3,26 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { api } from '@/config/api';
-
-interface Lead {
-    id: string;
-    name: string;
-    address: string;
-    category?: string;
-    phone?: string;
-    website?: string;
-    instagram?: string;
-    email?: string;
-    rating?: number;
-    reviewCount?: number;
-    score?: number;
-    contactAttempts: number;
-    hasValidWhatsapp: boolean;
-    hasValidInstagram: boolean;
-    hasValidEmail: boolean;
-    gaps?: string[];
-    daysInStage: number;
-}
+import type { OutreachLead as Lead } from '@/types/lead';
 
 interface SnoozeOption {
     label: string;
@@ -179,7 +160,7 @@ Saludos, ${config.userName} - ${config.companyName}`;
         }
     };
 
-    const getWhatsAppLink = (phone?: string) => {
+    const getWhatsAppLink = (phone?: string | null) => {
         if (!phone) return null;
         const cleaned = phone.replace(/\D/g, '');
         // Convert to Argentine format
@@ -219,7 +200,7 @@ Saludos, ${config.userName} - ${config.companyName}`;
                 </a>
             )}
             {(lead.hasValidEmail || lead.email) && (
-                <span className="bg-blue-500 text-white px-2 py-0.5 text-xs font-bold border border-black rounded" title={lead.email}>
+                <span className="bg-blue-500 text-white px-2 py-0.5 text-xs font-bold border border-black rounded" title={lead.email || undefined}>
                     📧
                 </span>
             )}
