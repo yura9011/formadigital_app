@@ -67,4 +67,4 @@ jobs:
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
-        run: ssh -i ~/.ssh/formadigital "$VPS_USER@$VPS_HOST" 'cd /opt/data/formadigital_app && ./deploy.sh'
+        run: ssh -i ~/.ssh/formadigital "$VPS_USER@$VPS_HOST" 'cd /opt/data/formadigital_app && git fetch origin main && git checkout main && git pull --ff-only origin main && ./deploy.sh'
