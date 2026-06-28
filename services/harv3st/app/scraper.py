@@ -1,5 +1,6 @@
 import json
 import math
+import re
 import time
 import urllib.parse
 import requests
@@ -17,7 +18,10 @@ def log_message(msg):
     print(msg)
 
 def geocode(location: str) -> tuple[float, float] | None:
-    """Convert a location string (e.g. 'Haedo, Buenos Aires') to lat/lng via OSM Nominatim."""
+    """Convert a location string to (lat, lng). If it's already 'lat,lng', parse directly."""
+    m = re.match(r'^(-?\d+\.\d+),(-?\d+\.\d+)$', location.strip())
+    if m:
+        return float(m.group(1)), float(m.group(2))
     url = f"https://nominatim.openstreetmap.org/search?q={urllib.parse.quote(location)}&format=json&limit=1"
     try:
         r = requests.get(url, headers={"User-Agent": "FormaDigitalHarv3st/1.0"}, timeout=10)
