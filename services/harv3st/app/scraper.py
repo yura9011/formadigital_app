@@ -1,5 +1,7 @@
 import json
+import math
 import time
+import urllib.parse
 import requests
 import os
 from playwright.sync_api import sync_playwright
@@ -13,6 +15,26 @@ def log_message(msg):
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(f"[{timestamp}] {msg}\n")
     print(msg)
+
+def geocode(location: str) -> tuple[float, float] | None:
+    """Convert a location string (e.g. 'Haedo, Buenos Aires') to lat/lng via OSM Nominatim."""
+    url = f"https://nominatim.openstreetmap.org/search?q={urllib.parse.quote(location)}&format=json&limit=1"
+    try:
+        r = requests.get(url, headers={"User-Agent": "FormaDigitalHarv3st/1.0"}, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+        if data:
+            return float(data[0]["lat"]), float(data[0]["lon"])
+    except Exception as e:
+        log_message(f"⚠️ Geocode error: {e}")
+    return None
+
+
+def _calc_zoom(radius_km: float) -> int:
+    """Google Maps zoom level from radius in km. 15 ≈ 1 km, 14 ≈ 2 km, etc."""
+    z = round(15 - math.log2(max(radius_km, 0.1)))
+    return max(11, min(17, z))
+
 
 def intercept_response(response):
     """
@@ -90,11 +112,11 @@ def intercept_response(response):
     except Exception as e:
         print(f"⚠️ Error processing response: {e}")
 
-def run_scraper(query, headless=None):
+def run_scraper(query, headless=None, near=None, radius_km=None):
     if headless is None:
         headless = Config.HEADLESS
-        
-    log_message(f"🏁 Starting scraper for: {query} (Headless: {headless})")
+
+    log_message(f"🏁 Starting scraper for: {query} (Headless: {headless}, near={near}, radius_km={radius_km})")
     try:
         with sync_playwright() as p:
             log_message("🚀 Launching Browser...")
@@ -109,7 +131,16 @@ def run_scraper(query, headless=None):
             page.on("response", intercept_response)
 
             log_message(f"🔍 Searching Google Maps...")
-            page.goto(f"https://www.google.com/maps/search/{query}")
+            encoded = urllib.parse.quote(query)
+            if near:
+                coords = geocode(near)
+                if coords:
+                    zoom = _calc_zoom(radius_km or 2)
+                    page.goto(f"https://www.google.com/maps/search/{encoded}/@{coords[0]},{coords[1]},{zoom}z")
+                else:
+                    page.goto(f"https://www.google.com/maps/search/{encoded}")
+            else:
+                page.goto(f"https://www.google.com/maps/search/{encoded}")
             
             try:
                 feed_selector = '[role="feed"]'

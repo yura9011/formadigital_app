@@ -10,6 +10,7 @@ from config import Config
 from app.scraper import run_scraper
 from core.scoring import score_all_leads
 from core.campaign import get_campaign_manager
+from legacy.instagram_enricher import enrich_instagram
 
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 CORS(app)
@@ -80,23 +81,30 @@ def get_scored_data():
 def trigger_search():
     query = request.json.get('query')
     headless = request.json.get('headless', True)
+    near = request.json.get('near')
+    radius_km = request.json.get('radius_km')
     
     if not query:
         return jsonify({"status": "error", "message": "No query provided"}), 400
     
-    def scrape_job(q, h):
+    def scrape_job(q, h, n, r):
         try:
             active_tasks.append(q)
-            run_scraper(q, headless=h)
+            run_scraper(q, headless=h, near=n, radius_km=r)
         finally:
             if q in active_tasks:
                 active_tasks.remove(q)
 
-    thread = threading.Thread(target=scrape_job, args=(query, headless))
+    thread = threading.Thread(target=scrape_job, args=(query, headless, near, radius_km))
     thread.daemon = True
     thread.start()
     
-    return jsonify({"status": "success", "message": f"Scraping started for: {query}"})
+    parts = [f"Scraping started for: {query}"]
+    if near:
+        parts.append(f"near {near}")
+    if radius_km:
+        parts.append(f"radius {radius_km}km")
+    return jsonify({"status": "success", "message": " — ".join(parts)})
 
 @app.route('/api/status', methods=['GET'])
 def get_status():
@@ -224,6 +232,35 @@ def clear_data():
         return jsonify({"status": "success", "message": "All data cleared"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# === INSTAGRAM ENRICHMENT ENDPOINT ===
+
+@app.route('/api/instagram/enrich', methods=['POST'])
+def instagram_enrich():
+    """
+    Enrich Instagram profile data for a given handle.
+    Rate limited to 10 requests per minute.
+    
+    Request body: { "handle": "username" }
+    Response: { "success": true, "data": {...} } or { "success": false, "error": "...", "error_code": "..." }
+    """
+    data = request.json
+    handle = data.get('handle') if data else None
+    
+    if not handle:
+        return jsonify({
+            "success": False,
+            "error": "No handle provided",
+            "error_code": "MISSING_HANDLE"
+        }), 400
+    
+    result = enrich_instagram(handle)
+    
+    if result.get('success'):
+        return jsonify(result)
+    else:
+        # Return 200 even for "not found" - it's not a server error
+        return jsonify(result)
 
 def start_server():
     print(f"🌍 Starting Server on {Config.API_URL}")
